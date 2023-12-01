@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <style>
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s, color 0.3s; /* Added color transition */
+        }
+
+        .back-btn:hover {
+            background-color: #0056b3;
+            color: #fff; /* Change the text color to white on hover */
+        }
+
+        body {
+            background: url('https://st3.depositphotos.com/7865540/13292/i/450/depositphotos_132922972-stock-photo-view-of-tablet-with-icons.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .container {
+            margin-top: 70px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            margin-top: 20px;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+         <a href="javascript:history.back()" class="back-btn">&lt; Back</a>
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-title">View Results</div>
+                    <p>Check and analyze quiz results.</p>
+                    <a href="{{ url_for('view_quiz_results') }}" class="btn btn-primary">See Results</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-title">See Resumes?</div>
+                    <p>See and download the resumes.</p>
+                    <a href="{{ url_for('see_resumes') }}" class="btn btn-primary">See Resumes</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-title">See Registered Candidates</div>
+                    <p>View and manage users.</p>
+                    <a href="show_data" class="btn btn-primary">Registered Candidates</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-title">View Feedback</div>
+                    <p>Check feedback from quiz-takers.</p>
+                    <a href="{{ url_for('view_feedback') }}" class="btn btn-primary">View Feedback</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Page</title>
+    <!-- Add your CSS link or styles here -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #0056b3;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('https://cdn2.vectorstock.com/i/1000x1000/99/11/tv-quiz-show-host-and-two-participants-happy-vector-33229911.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            user-select: none;
+        }
+
+        h1 {
+            color: #3498db;
+        }
+
+        .question {
+            margin-bottom: 20px;
+        }
+
+        input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        label {
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        input[type="submit"] {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+    </style>
+    <script>
+        window.onload = function () {
+            window.addEventListener('beforeunload', function (event) {
+                event.returnValue = "Refreshing the page will lose your answers. Are you sure you want to refresh?";
+            });
+        }
+
+        
+    </script>
+    
+</head>
+
+<body>
+
+    <div class="container">
+        <a href="javascript:history.back()" class="back-btn">&lt; Back</a>
+
+        <h1>Quiz Page</h1>
+
+        <form action="/quiz" method="post">
+            {% for question, data in questions %}
+            <div class="question">
+                <h3>{{ question }}</h3>
+                {% for option in data.options %}
+                <input type="radio" id="{{ option }}" name="{{ question }}" value="{{ option }}">
+                <label for="{{ option }}">{{ option }}</label><br>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+
+</body>
+
+</html>
