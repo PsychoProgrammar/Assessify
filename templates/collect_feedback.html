@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Feedback Form</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Add any additional styles or scripts as needed -->
+    <style>
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #0056b3;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('https://thumbs.dreamstime.com/b/text-sign-showing-your-feedback-matters-concept-business-282152901.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.8); /* Transparent white background */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-align: center;
+        }
+
+        h1 {
+            color: #007bff;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input,
+        textarea {
+            width: calc(100% - 16px); /* Adjusted width to account for padding */
+            padding: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .feedback-message {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="javascript:history.back()" class="back-btn">&lt; Back</a>
+        <h1>Feedback Form</h1>
+        <form id="feedbackForm" action="/submit_feedback" method="POST">
+            <div>
+                <label for="name">Your Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div>
+                <label for="email">Your Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div>
+                <label for="feedback">Feedback:</label>
+                <textarea id="feedback" name="feedback" rows="4" required></textarea>
+            </div>
+
+            <button type="submit" onclick="submitForm()">Submit Feedback</button>
+        </form>
+
+        <div id="feedbackMessage" class="feedback-message"></div>
+    </div>
+
+    <script>
+        function submitForm() {
+            var form = document.getElementById("feedbackForm");
+            var feedbackMessage = document.getElementById("feedbackMessage");
+
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                // Use Fetch API or other methods to submit the form data
+                fetch("/submit_feedback", {
+                        method: "POST",
+                        body: new FormData(form),
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        feedbackMessage.textContent = data;
+                    })
+                    .catch(error => {
+                        console.error("Error submitting feedback:", error);
+                        feedbackMessage.textContent = "Error submitting feedback. Please try again later.";
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

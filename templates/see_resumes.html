@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>See Resumes</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <style>
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #f8f9fa; /* Bootstrap default background color */
+}
+
+.container {
+    padding: 50px 0;
+}
+
+.card {
+    background-color: #fff;
+    border: 1px solid #dee2e6; /* Bootstrap default border color */
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    padding: 15px;
+    background-color: #007bff; /* Bootstrap primary color */
+    color: #fff; /* White text on primary background */
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.card p {
+    padding: 15px;
+    margin: 0;
+}
+
+.card a {
+    color: darkblue; /* Bootstrap primary color for links */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.card a:hover {
+    text-decoration: underline;
+}
+
+/* Optional: Add some spacing between cards for better readability */
+.row {
+    margin-left: -15px;
+    margin-right: -15px;
+}
+
+.col-md-4 {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            {% for user in users %}
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-title">{{ user.name }} - <a href="{{ url_for('download_resume', user_id=user.id) }}">Download Resume</a></div>
+                    <p>Email: {{ user.email }}</p>
+                    {% if user.resume_filename %}
+                    <!-- <a href="{{ url_for('download_resume', user_id=user.id) }}" class="btn btn-primary">Download Resume</a> -->
+                    {% else %}
+                    <p>No resume available</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+
+</html>

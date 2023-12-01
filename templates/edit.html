@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Edit Details</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <style>
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s, color 0.3s; /* Added color transition */
+        }
+
+        .back-btn:hover {
+            background-color: #0056b3;
+            color: #fff; /* Change the text color to white on hover */
+        }
+
+        body {
+            background: url('https://static.wixstatic.com/media/a58c24_48cd964fb6014c6dbe27db0ab2426444~mv2.jpg/v1/fill/w_1000,h_673,al_c,q_85,usm_0.66_1.00_0.01/a58c24_48cd964fb6014c6dbe27db0ab2426444~mv2.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .container {
+            margin-top: 50px;
+            color: black; /* Set text color to white for better contrast */
+        }
+
+        h2 {
+            color:#007bff;
+            margin-bottom: 30px;
+        }
+
+        form {
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #007bff
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>         
+</head>
+<body>
+
+    <div class="container">
+        <a href="javascript:history.back()" class="back-btn">&lt; Back</a>
+        <div class="row justify-content-center">
+            <div class="col-sm-6 mt-4">
+                <h2>Edit Details Form</h2>
+
+                <form method="POST" action="/edit">
+                    <label for="name">Name:</label>
+                    <input type="text" name="name" class="form-control" value="{{ user.name }}">
+                    
+                    <label for="email">Email:</label>
+                    <input type="email" name="email" class="form-control" value="{{ user.email }}">
+                    
+                    <label for="phone">Phone:</label>
+                    <input type="text" name="phone" class="form-control" value="{{ user.phone }}">
+                    
+                    <label for="proficiency">Proficiency:</label>
+                    <div class="checkbox-group">
+                        <div class="form-check">
+                            <input type="checkbox" id="python" name="proficiency[]" value="Python" class="form-check-input">
+                            <label for="python" class="form-check-label">Python</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="cpp" name="proficiency[]" value="C++" class="form-check-input">
+                            <label for="cpp" class="form-check-label">C++</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="java" name="proficiency[]" value="Java" class="form-check-input">
+                            <label for="java" class="form-check-label">Java</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="golang" name="proficiency[]" value="Golang" class="form-check-input">
+                            <label for="golang" class="form-check-label">Golang</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" id="flask" name="proficiency[]" value="Flask" class="form-check-input">
+                            <label for="flask" class="form-check-label">Flask</label>
+                        </div>
+                    </div>
+                    
+                    <input type="submit" class="btn btn-primary" value="Update">
+                </form>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

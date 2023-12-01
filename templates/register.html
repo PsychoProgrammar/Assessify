@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Registration Page</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('https://media.istockphoto.com/id/1463013729/photo/online-registration-form-for-modish-form-filling.webp?b=1&s=170667a&w=0&k=20&c=iUOC7YLenExVDT9pfUtJyyIS-dlJvOPyJq1USG4lv5I=') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            color: #fff; /* Set text color to white or a suitable contrast color */
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        h2 {
+            color: rgba(22, 194, 221, 0.945);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        form {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        label {
+            color: #fff;
+        }
+
+        .btn-dark {
+            background-color: #343a40;
+            border-color: #343a40;
+        }
+
+        .btn-dark:hover {
+            background-color: #23272b;
+            border-color: #23272b;
+        }
+
+        .btn-primary {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-sm-6 mt-4">
+                <h2>Registration Form</h2>
+                <form action="/register" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input type="text" class="form-control" id="name" placeholder="Enter name" name="name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" class="form-control" id="email" placeholder="Enter email" name="email" autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pwd">Password:</label>
+                        <input type="password" class="form-control" id="pwd" placeholder="Enter password" name="password" autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number:</label>
+                        <input type="tel" class="form-control" id="phone" placeholder="Enter phone number" name="phone" pattern="[0-9]{10}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Proficiency:</label><br>
+                        <div class="form-check form-check-inline">
+                            <input type="checkbox" class="form-check-input" id="python" name="proficiency[]" value="Python">
+                            <label class="form-check-label" for="python">Python</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="checkbox" class="form-check-input" id="cpp" name="proficiency[]" value="C++">
+                            <label class="form-check-label" for="cpp">C++</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="checkbox" class="form-check-input" id="java" name="proficiency[]" value="Java">
+                            <label class="form-check-label" for="java">Java</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="checkbox" class="form-check-input" id="golang" name="proficiency[]" value="Golang">
+                            <label class="form-check-label" for="golang">Golang</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="checkbox" class="form-check-input" id="flask" name="proficiency[]" value="Flask">
+                            <label class="form-check-label" for="flask">Flask</label>
+                        </div>
+
+                        <div class="form-group" id="relatedLanguages" style="display:none;">
+                            <!-- Dynamic checkboxes will be added here -->
+                        </div>
+                        <br>
+                        <br>
+                        <div class="form-group">
+                            <label for="resume">Resume (PDF only):</label>
+                            <input type="file" class="form-control-file" id="resume" name="resume" accept=".pdf">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark">Submit</button><br>
+                    <br>
+                    <h5>Already have an Account?</h5>
+                    <a href="/login/user" class="btn btn-primary">Login</a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
