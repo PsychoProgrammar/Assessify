@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Quiz - Choose Category</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <a href="{{ url_for('admin_dashboard') }}" class="back-btn">&lt; Back to Admin Dashboard</a>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-title">Create Quiz - Choose Category</div>
+                    <form action="{{ url_for('create_quiz') }}" method="post">
+                        <div class="form-group">
+                            <label for="quiz_category">Select Quiz Category:</label>
+                            <select class="form-control" id="quiz_category" name="quiz_category">
+                                <option value="python">Python</option>
+                                <option value="cpp">C++</option>
+                                <option value="java">Java</option>
+                                <option value="flask">Flask</option>
+                                <option value="golang">Golang</option>
+                                <!-- Add more options as needed -->
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Next</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

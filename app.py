@@ -1,4 +1,4 @@
-from flask import Flask, request,render_template, redirect,session, send_file, url_for
+from flask import Flask, request,render_template, redirect,session, send_file, url_for,render_template_string
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask import jsonify
@@ -6,22 +6,62 @@ import random as random
 import os
 from io import BytesIO
 import io
+from datetime import datetime
+import pytz
+from werkzeug.utils import secure_filename
+from flask_mail import Mail, Message
+
+
+
+# import tkinter as tk
+ 
+# root = tk.Tk()
+# root.attributes('-fullscreen', True)
+ 
+# # Your application content here
+ 
+# root.mainloop()
+
 
  
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db = SQLAlchemy(app)
+
+app.config['MAIL_SERVER'] = 'your_mail_server'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = 'shreyaballolli@gmail.com'
+app.config['MAIL_PASSWORD'] = 'shreya_66'
+app.config['MAIL_DEFAULT_SENDER'] = 'shreyaballolli@gmail.com'
+mail = Mail(app)
+
 # db.init_app(app)
 
 # from models import Feedback
 migrate = Migrate(app, db)
 app.secret_key = 'secret_key'
 
+class QuizQuestion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(50), nullable=False)
+    question = db.Column(db.Text, nullable=False)
+    options = db.Column(db.JSON, nullable=True)  
+    correct_answer = db.Column(db.String(255), nullable=False) 
+
+    def __init__(self, category, question, options,correct_answer):
+        self.category = category
+        self.question = question
+        self.options = options
+        self.correct_answer=correct_answer
+
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False)
     feedback = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __init__(self, name, email, feedback):
         self.name = name
@@ -43,9 +83,11 @@ class User(db.Model):
     quiz_score = db.Column(db.Integer, nullable=True)
     resume_filename = db.Column(db.String(255), nullable=True)
     resume_data = db.Column(db.LargeBinary, nullable=True)
+    image_filename = db.Column(db.String(255), nullable=True)
+    image_data = db.Column(db.LargeBinary, nullable=True)
     
  
-    def __init__(self,name,email,password, phone , proficiency,resume_filename=None, resume_data=None):
+    def __init__(self,name,email,password, phone , proficiency,resume_filename=None, resume_data=None,image_filename=None, image_data=None):
         self.name = name
         self.email = email
         self.password = password
@@ -53,6 +95,8 @@ class User(db.Model):
         self.proficiency=proficiency
         self.resume_filename = resume_filename
         self.resume_data = resume_data
+        self.image_filename=image_filename
+        self.image_data=image_data
         # self.quiz_score=quiz_score
         # self.feedback=feedback
         # self.quiz_experience=quiz_experience
@@ -60,7 +104,26 @@ class User(db.Model):
    
     def check_password(self,password):
         return password
-   
+
+
+def custom_sort(feedbacks):
+     return sorted(feedbacks, key=lambda x: x.timestamp if x.timestamp else datetime.min, reverse=True)
+
+# Function to convert UTC time to IST
+def convert_utc_to_ist(utc_time_str):
+    if isinstance(utc_time_str, datetime):
+        # If utc_time_str is already a datetime object, format it and return
+        return utc_time_str.strftime('%Y-%m-%d %H:%M:%S')
+
+    if utc_time_str:
+        utc_time = datetime.strptime(utc_time_str, '%Y-%m-%d %H:%M:%S')
+        utc_time = pytz.utc.localize(utc_time)
+        ist_time = utc_time.astimezone(pytz.timezone('Asia/Kolkata'))
+        return ist_time.strftime('%Y-%m-%d %H:%M:%S')
+    else:
+        return 'N/A'
+app.jinja_env.filters['custom_sort'] = custom_sort
+app.jinja_env.filters['convert_utc_to_ist'] = convert_utc_to_ist   
    
 # Hardcoded admin credentials
 ADMIN_EMAIL = 'admin@example.com'
@@ -134,10 +197,8 @@ def register():
         email = request.form['email']
         password = request.form['password']
         phone = request.form['phone']  
-        # proficiency = request.form['proficiency']
         proficiencies=request.form.getlist('proficiency[]')
         proficiency_str=','.join(proficiencies)
-        # quiz_score=request.form['quiz_score']
 
         new_user = User(name=name,email=email,password=password,phone=phone,proficiency=proficiency_str)
 
@@ -148,10 +209,16 @@ def register():
                 # Save resume details in the database
                 new_user.resume_filename = resume_file.filename
                 new_user.resume_data = resume_file.read()
+
+         # Handle image upload
+        if 'image' in request.files:
+         image = request.files['image']
+        if image.filename != '':
+            filename = secure_filename(image.filename)
+            new_user.image_filename = filename
+            new_user.image_data = image.read()
        
-        
-        
-        
+          
         db.session.add(new_user)
         db.session.commit()
         return redirect('/login/user')
@@ -241,14 +308,9 @@ def admin_dashboard():
 
 @app.route('/view_feedback')
 def view_feedback():
-    # if 'admin' in session:
-    #     feedbacks = Feedback.query.all()
-    #     return render_template('view_feedback.html', feedbacks=feedbacks)
-    # return redirect('/login/admin')
-
     with app.app_context():
         feedback_entries= Feedback.query.all()
-        return render_template('view_feedback.html', feedbacks=feedback_entries)
+        return render_template('view_feedback.html', feedbacks=feedback_entries, convert_utc_to_ist=convert_utc_to_ist)
  
 @app.route('/logout')
 def logout():
@@ -271,28 +333,28 @@ def delete_user(user_id):
     else:
         return jsonify({'message': 'User not found'}), 404
  
-@app.route('/edit', methods=['GET', 'POST'])
-def edit_details():
-    if 'email' in session:
-        user = User.query.filter_by(email=session['email']).first()
+# @app.route('/edit', methods=['GET', 'POST'])
+# def edit_details():
+#     if 'email' in session:
+#         user = User.query.filter_by(email=session['email']).first()
        
-        if request.method == 'POST':
+#         if request.method == 'POST':
            
-            user.name = request.form['name']
-            # user.password=request.form['password']
-            user.email = request.form['email']
-            user.phone = request.form['phone']
-            user.proficiency = None
+#             user.name = request.form['name']
+#             # user.password=request.form['password']
+#             user.email = request.form['email']
+#             user.phone = request.form['phone']
+#             user.proficiency = None
 
-             # Add selected proficiencies
-            selected_proficiencies = request.form.getlist('proficiency[]')
-            user.proficiency = ','.join(selected_proficiencies)
+#              # Add selected proficiencies
+#             selected_proficiencies = request.form.getlist('proficiency[]')
+#             user.proficiency = ','.join(selected_proficiencies)
            
-            db.session.commit()
-            return redirect('/user_dashboard')
+#             db.session.commit()
+#             return redirect('/user_dashboard')
        
-        return render_template('edit.html', user=user)
-    # return redirect('/login')
+#         return render_template('edit.html', user=user)
+#     # return redirect('/login')
  
  
 @app.route('/collect_feedback')
@@ -322,12 +384,22 @@ def submit_feedback():
  
     # return "Error submitting feedback"
 
+# @app.route('/quiz_page')
+# def index2():
+#     if 'email' in session:
+#         user = User.query.filter_by(email=session['email']).first()
+#         if user.quiz_score is not None:
+#             return "You have already taken the assessment."
+#     # Select 3 random questions for the quiz each time the page is refreshed
+#     selected_questions = random.sample(list(questions.items()), 5)
+#     return render_template('quiz_page.html', questions=selected_questions)
+
 @app.route('/quiz_page')
 def index2():
     if 'email' in session:
         user = User.query.filter_by(email=session['email']).first()
         if user.quiz_score is not None:
-            return "You have already taken the assessment."
+            return render_template('already_taken.html')
     # Select 3 random questions for the quiz each time the page is refreshed
     selected_questions = random.sample(list(questions.items()), 5)
     return render_template('quiz_page.html', questions=selected_questions)
@@ -340,11 +412,11 @@ def quiz():
 
     # Retrieve the user based on the session email
     user = User.query.filter_by(email=session['email']).first()
- 
     for question, answer in user_answers.items():
         if questions[question]["answer"] == answer:
             score += 1
 
+    
     # Update the user's quiz score in the database
     user.quiz_score = score
     db.session.commit()
@@ -362,11 +434,11 @@ def coding_questions():
     return render_template('coding_questions.html')  # or the actual template for coding questions
  
  
-@app.route('/coding-eligibility/<int:score>')
+@app.route('/coding_eligibility/<int:score>')
 def coding_eligibility(score):
     return render_template('coding_eligibility.html', score=score)
  
-@app.route('/not-eligible')
+@app.route('/not_eligible')
 def not_eligible():
     return render_template('not_eligible.html')
 
@@ -374,15 +446,36 @@ def not_eligible():
 @app.route('/view_quiz_results')
 def view_quiz_results():
     with app.app_context():
-        users= User.query.all()
+        users = User.query.all()
         return render_template('view_quiz_results.html', users=users)
+
+@app.route('/send_quiz_results_email', methods=['POST'])
+def send_quiz_results_email():
+    recipient_email = request.form['recipient_email']
+
+    # Filter users with scores of 3 and above
+    high_scorers = [user for user in User.query.all() if user.quiz_score is not None and user.quiz_score >= 3]
+
+    # Render the email body template
+    body = render_template('quiz_results_email_template.html', high_scorers=high_scorers)
+
+    # Create the email message
+    subject = 'Quiz Results'
+    message = Message(subject, recipients=[recipient_email], body=body)
+
+    try:
+        # Send the email
+        mail.send(message)
+        return 'Quiz results email sent successfully!'
+    except Exception as e:
+        return 'Error sending quiz results email: {}'.format(str(e))
     
-@app.route('/see_resumes')
-def see_resumes():
-        with app.app_context():
-         users = User.query.all()
-        return render_template('see_resumes.html', users=users)
-        return redirect('/login/admin')
+# @app.route('/see_resumes')
+# def see_resumes():
+#         with app.app_context():
+#          users = User.query.all()
+#         return render_template('see_resumes.html', users=users)
+#         return redirect('/login/admin')
 
 @app.route('/download_resume/<int:user_id>')
 def download_resume(user_id):
@@ -398,6 +491,109 @@ def download_resume(user_id):
         )
     else:
         return jsonify({'message': 'Resume not found'}), 404
-     
+    
+@app.route('/get_image/<filename>')
+def get_image(filename):
+    user = User.query.filter_by(image_filename=filename).first()
+    if user:
+        return send_file(BytesIO(user.image_data), mimetype='image/jpeg')  # Adjust mimetype as needed
+    return 'Image not found', 404
+
+
+@app.route('/create_quiz_category', methods=['GET', 'POST'])
+def create_quiz_category():
+    if request.method == 'POST':
+        quiz_category = request.form.get('quiz_category')
+        session['quiz_category'] = quiz_category
+        return redirect(url_for('create_quiz_questions'))
+    return render_template('create_quiz_category.html')
+
+# Add a global variable to store questions
+python_questions = []
+
+@app.route('/create_quiz_questions', methods=['GET', 'POST'])
+def create_quiz_questions():
+    if request.method == 'POST':
+        # Handle form submission and add questions to the global variable or database
+        question_text = request.form.get('question')
+        options = [
+            request.form.get('option1'),
+            request.form.get('option2'),
+            # Add more options as needed
+        ]
+        correct_answer = request.form.get('correct_answer')
+
+        # Create a dictionary to represent the question
+        question = {
+            'text': question_text,
+            'options': options,
+            'correct_answer': correct_answer
+        }
+
+        # Store the question in the global variable or database
+        python_questions.append(question)
+
+        # Redirect to Python questions page
+        return redirect(url_for('python_questions_page'))
+
+    return render_template('create_quiz_questions.html')
+
+
+
+@app.route('/submit_questions', methods=['POST'])
+def submit_questions():
+    if request.method == 'POST':
+        question_text = request.form.get('question')
+        options = [request.form.get('option1'), request.form.get('option2')]
+        correct_answer = request.form.get('correct_answer')
+        category = session.get('quiz_category')
+
+        new_question = QuizQuestion(category=category, question=question_text, options=options, correct_answer=correct_answer)
+        db.session.add(new_question)
+        db.session.commit()
+
+        # Create a dictionary to represent the question
+        question = {
+            'text': question_text,
+            'options': options,
+            'correct_answer': correct_answer
+        }
+
+        # Store the question in the global variable
+        python_questions.append(question)
+
+        
+
+        # Redirect to Python questions page
+        return redirect(url_for('python_questions_page'))
+
+# Add route to display Python questions
+# from flask import render_template
+
+# Placeholder function for testing purposes
+# def get_python_questions():
+#     questions = [
+#         {
+#             "text": "What is the capital of France?",
+#             "options": ["Paris", "Berlin", "Rome", "Madrid"],
+#             "correct_answer": "Paris"
+#         },
+#         {
+#             "text": "Which of the following is not a programming language?",
+#             "options": ["Python", "Java", "HTML", "Fruit"],
+#             "correct_answer": "Fruit"
+#         },
+        # Add more questions as needed
+    # ]
+    # return questions
+
+
+@app.route('/python_questions_page')
+def python_questions_page():
+    category = session.get('quiz_category')
+    questions = QuizQuestion.query.filter_by(category=category).all()
+
+    return render_template('python_questions_page.html', questions=questions)
+
 if __name__ == '__main__':
     app.run(debug=True , port=1234)

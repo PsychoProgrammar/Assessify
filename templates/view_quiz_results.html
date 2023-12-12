@@ -5,7 +5,7 @@
     <title>Quiz Results</title>
     <style>
         .back-btn {
-            position: absolute;
+            position: fixed;
             top: 15px;
             left: 15px;
             background-color: #007bff;
@@ -19,13 +19,14 @@
 
         .back-btn:hover {
             background-color: #0056b3;
+            color: #fff;
         }
         body {
             font-family: 'Arial', sans-serif;
             background: url('https://www.tamilanjobs.com/wp-content/uploads/2023/05/JNTUK-MBA-1st-Sem-R19-RegularSupply-Results.png') no-repeat center center fixed;
             background-size: cover;
             margin: 0;
-            padding: 0;
+            padding: 20;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -76,9 +77,18 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        .download-btn{
+            display: block;
+            width: 100%;
+            margin-top: 5px;
+        }
+        
     </style>
 </head>
 <body>
+    <!-- <form action="/send_email_to_hr" method="post">
+        <button type="submit">Send Email to HR</button> -->
     <a href="javascript:history.back()" class="back-btn">&lt; Back</a>
     <h1>Quiz Results</h1>
     <table>
@@ -86,14 +96,36 @@
             <th>Name</th>
             <th>Email</th>
             <th>Quiz Score</th>
+            <th colspan="2">Resumes</th>
         </tr>
-        {% for user in users %}
+        {% for user in users|reverse %}
             <tr>
                 <td>{{ user.name }}</td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.quiz_score }}/5</td>
+                <td>{{ user.resume }}</td>
+                <td>
+                    <form action="/download_resume/{{ user.id }}" method="get">
+                        <button type="submit" class="btn btn-info download-btn">Download</button>
+                    </form>
+                </td>
             </tr>
         {% endfor %}
     </table>
+
+    <form id="emailForm" action="/send_quiz_results_email" method="post">
+        <label for="recipient_email">Recipient Email:</label>
+        <input type="email" name="recipient_email" required>
+        <!-- Add a button to trigger the form submission -->
+        <button type="button" onclick="sendQuizResultsEmail()">Send Quiz Results Email</button>
+    </form>
+
+    <script>
+        function sendQuizResultsEmail() {
+            var form = document.getElementById('emailForm');
+            form.submit();
+        }
+    </script>
+    
 </body>
 </html>

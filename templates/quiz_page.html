@@ -18,6 +18,7 @@
             border-radius: 4px;
             font-size: 16px;
             transition: background-color 0.3s;
+            z-index: 3;
         }
 
         .back-btn:hover {
@@ -34,16 +35,20 @@
 
         .container {
             max-width: 800px;
-            margin: 50px auto;
+            margin: 80px auto;
             background-color: rgba(255, 255, 255, 0.8);
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             user-select: none;
+            position: relative; /* Make the container position relative */
+            overflow-y: auto; /* Enable vertical scrolling */
+            max-height: calc(100vh - 90px); /* Set maximum height (viewport height minus some padding) */
         }
 
         h1 {
             color: #3498db;
+            margin-top: 0;
         }
 
         .question {
@@ -72,27 +77,151 @@
         input[type="submit"]:hover {
             background-color: #2980b9;
         }
+
+        /* Styles for the button */
+        #cameraButton {
+            background-color: #333; /* Setting a dark background color */
+            color: white; /* Text color */
+            border: none; /* Removing the button border */
+            padding: 10px 20px; /* Adjusting padding for better appearance */
+            font-size: 16px; /* Setting font size */
+            cursor: pointer; /* Changing cursor to pointer on hover */
+        }
+       
+        /* Style when hovering over the button */
+        #cameraButton:hover {
+            background-color: #555; /* Darker background color on hover */
+        }
+ 
+        /* Box for displaying the video stream */
+        #videoBox {
+            width: 300px; /* Set width */
+            height: 200px; /* Set height */
+            border: 2px solid #333; /* Border around the box */
+            position: fixed; /* Positioning */
+            bottom: 20px; /* Distance from the bottom */
+            right: 20px; /* Distance from the right */
+            display: none; /* Initially hide the box */
+            z-index: 2;
+            top: 20px;
+        }
+ 
+        /* Video styling */
+        video {
+            width: 100%;
+            height: 100%;
+        }
+
+        #quizForm {
+            margin-top: 40px; /* Adjust the margin to give space for the video box */
+        }
+
+        .question {
+            margin-bottom: 20px;
+        }
+
+        
     </style>
+    
     <script>
+        async function grantCameraAccess() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Handle stream - display in the video element
+                const video = document.getElementById('cameraFeed');
+                video.srcObject = stream;
+                video.onloadedmetadata = (e) => {
+                    video.play();
+                };
+                document.getElementById('videoBox').style.display = 'block'; // Display the video box
+                alert('Camera access granted!');
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Please allow camera access to proceed with the quiz.');
+                // Prevent form submission if camera access is denied
+                document.getElementById('quizForm').addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    alert('Cannot proceed without camera access.');
+                });
+            }
+        }
+
         window.onload = function () {
             window.addEventListener('beforeunload', function (event) {
                 event.returnValue = "Refreshing the page will lose your answers. Are you sure you want to refresh?";
             });
+
+            // Call the function to grant camera access on page load
+            grantCameraAccess();
+
+            // Set the duration of the timer in seconds (1 minute = 60 seconds)
+            const duration = 60;
+
+            // Display the timer
+            const timerDisplay = document.getElementById('timer');
+            const timeUpMessage = document.getElementById('timeUpMessage');
+            let timer = duration, minutes, seconds;
+
+            setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                timerDisplay.textContent = minutes + ":" + seconds;
+
+            //     if (--timer < 0) {
+            //         // When the timer reaches 0, display the time up message and disable form submission
+            //         timeUpMessage.style.display = 'block';
+            //         document.getElementById('quizForm').addEventListener('submit', (event) => {
+            //             event.preventDefault();
+            //             alert('Time is up! You cannot submit the quiz.');
+            //             window.location.href = "/collect_feedback";
+            //         });
+            //     }
+            // }, 1000);
+                   if (--timer < 0) {
+            // When the timer reaches 0, submit the form
+            document.getElementById('quizForm').submit();
+        }
+    }, 1000);
         }
 
-        
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('cameraButton').addEventListener('click', function () {
+                // Call the function to grant camera access when the button is clicked
+                grantCameraAccess();
+            });
+        });
     </script>
+
     
 </head>
 
 <body>
-
+    <a href="javascript:history.back()" class="back-btn">&lt; Back</a>
     <div class="container">
-        <a href="javascript:history.back()" class="back-btn">&lt; Back</a>
+        
 
         <h1>Quiz Page</h1>
+           
+           
+            
+     
+            <!-- Box for displaying the video stream -->
+            <div id="videoBox">
+                <video id="cameraFeed" autoplay playsinline></video>
+            </div>
 
-        <form action="/quiz" method="post">
+            <!-- Add this hidden input field to store the captured image data -->
+            <input type="hidden" id="capturedImageData" name="capturedImageData" value="">
+
+            <!-- Timer display and time up message -->
+        <div id="timer">01:00</div>
+        <div id="timeUpMessage" style="color: red; font-size: 18px; display: none;">Time is up! You cannot submit the quiz.</div>
+
+        <form id="quizForm" action="/quiz" method="post">
             {% for question, data in questions %}
             <div class="question">
                 <h3>{{ question }}</h3>

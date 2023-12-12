@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Coding Questions</title>
@@ -10,12 +11,12 @@
             margin: 0;
             padding: 20px;
         }
- 
+
         h1 {
             text-align: center;
             color: #390032;
         }
- 
+
         .question {
             background-color: #bfc4c9;
             border-radius: 10px;
@@ -23,26 +24,60 @@
             margin-bottom: 20px;
             box-shadow: 0 0 5px orange;
         }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .question button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .question button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
+
 <body>
     <h1>Coding Questions</h1>
- 
+
     <div class="question">
         <h2>Question 1:</h2>
         <p>This is the first coding question description.</p>
         <!-- You can add more details about the question here -->
+        <div class="button-container">
+            <button onclick="handleButtonClick('question1', 'button1')">Button 1</button>
+            <!-- <button onclick="handleButtonClick('question1', 'button2')">Button 2</button> -->
+        </div>
     </div>
- 
+
     <div class="question">
         <h2>Question 2:</h2>
         <p>This is the second coding question description.</p>
         <!-- Add more details about the second question -->
+        <div class="button-container">
+            <button onclick="handleButtonClick('question2', 'button1')">Button 2</button>
+            <!-- <button onclick="handleButtonClick('question2', 'button2')">Button 2</button> -->
+        </div>
     </div>
- 
+
     <!-- Add more question divs as needed -->
- 
+
+    <script>
+        function handleButtonClick(question, button) {
+            // Add your logic here based on the clicked button and question
+            console.log(`Button ${button} clicked for Question ${question}`);
+        }
+    </script>
+
 </body>
+
 </html>
- 
- 

@@ -101,22 +101,18 @@
             <th>Email</th>
             <th>Phone</th>
             <th>Proficiency</th>
-            <th colspan="2">Resumes</th>
-            <th colspan="2">Delete User</th>
+            <!-- <th>Image</th> -->
+            <th>Delete User</th>
         </tr>
-        {% for user in users %}
+        {% for user in users|reverse %}
             <tr>
                 <td>{{ user.id }}</td>
                 <td>{{ user.name }}</td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.phone }}</td>
                 <td>{{ user.proficiency }}</td>
-                <td>{{ user.resume }}</td>
-                <td>
-                    <form action="/download_resume/{{ user.id }}" method="get">
-                        <button type="submit" class="btn btn-info download-btn">Download</button>
-                    </form>
-                </td>
+                <!-- <td>{{ user.image}}</td> -->
+                
                 <td>
                     <form action="/delete_user/{{ user.id }}" method="post">
                         <button type="submit" class="btn btn-danger delete-btn">Delete</button>

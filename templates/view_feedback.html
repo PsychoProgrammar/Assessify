@@ -89,18 +89,43 @@
 
     <table>
         <tr>
+            <th>Timestamp</th>
             <th>Name</th>
             <th>Email</th>
             <th>Feedback</th>
         </tr>
-        {% for feedback in feedbacks %}
+        {% for feedback in feedbacks|custom_sort %}
             <tr>
+                <td>
+                    {% if feedback.timestamp %}
+                    {{ convert_utc_to_ist(feedback.timestamp)|safe }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
                 <td>{{ feedback.name }}</td>
                 <td>{{ feedback.email }}</td>
                 <td>{{ feedback.feedback }}</td>
             </tr>
         {% endfor %}
     </table>
+
+    <script>
+        // Custom Jinja filter to handle sorting with None values
+        window.jinjaEnv.filters.custom_sort = function (array) {
+            return array.slice().sort(function (a, b) {
+                if (a.timestamp && b.timestamp) {
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                } else if (a.timestamp) {
+                    return -1; // 'a' has a timestamp, so it comes first
+                } else if (b.timestamp) {
+                    return 1; // 'b' has a timestamp, so it comes first
+                } else {
+                    return 0; // both are None, no preference
+                }
+            });
+        };
+    </script>
 
 </body>
 
