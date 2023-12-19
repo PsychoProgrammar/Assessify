@@ -172,6 +172,28 @@ questions = {
     }
 }
  
+questions_coding = [
+    {
+        "id": 1,
+        "description": "Write a function is_palindrome(s) that takes a string s as input and returns True if s is a palindrome, otherwise False. A palindrome is a word, phrase, number, or other sequence of characters that reads the same forward and backward. Example: 'racecar', 'level'.",
+        "tests": [  # Sample test cases
+            {"input": ["racecar"], "output": True},
+            {"input": ["hello"], "output": False},
+            # Add more test cases if needed
+        ]
+    },
+    {
+        "id": 2,
+        "description": "Write a Python function fibonacci(n) that prints the Fibonacci series up to the nth term. The Fibonacci sequence starts with 0 and 1, and each subsequent term is the sum of the two preceding ones. Example: fibonacci(5) should print 0, 1, 1, 2, 3.",
+        "tests": [  # Sample test cases
+            {"input": [5], "output": [0, 1, 1, 2, 3]},
+            {"input": [8], "output": [0, 1, 1, 2, 3, 5, 8, 13]},
+            # Add more test cases if needed
+        ]
+    }
+    # Add more questions as needed
+]
+
  
 @app.route('/')
 def index():
@@ -414,10 +436,10 @@ def quiz():
     # else:
     #     return render_template('quiz_result.html', score=score)
     
-@app.route('/coding-questions')
-def coding_questions():
-    # Logic to display coding questions goes here
-    return render_template('coding_questions.html')  # or the actual template for coding questions
+# @app.route('/coding-questions')
+# def coding_questions():
+#     # Logic to display coding questions goes here
+#     return render_template('coding_questions.html')  # or the actual template for coding questions
  
  
 @app.route('/coding_eligibility/<int:score>')
@@ -555,7 +577,20 @@ def convert_utc_to_ist(utc_time):
         return ist_time.strftime('%Y-%m-%d %H:%M:%S IST')
     return 'N/A'
 
+@app.route('/coding-questions')
+def coding_questions():
+    return render_template('coding_questions.html', questions_coding=questions_coding)
 
+@app.route('/submit-code', methods=['POST'])
+def submit_code():
+    user_code = request.json.get('code')
+    question_id = int(request.json.get('question_id'))
+
+    # Logic to run user's code against test cases for the specified question_id
+    # Implement this part based on your requirements (e.g., using Python's `exec` function or other sandboxed execution)
+
+    # For demonstration, sending a dummy response
+    return jsonify({"result": "Code submitted successfully."})
 
 if __name__ == '__main__':
     app.run(debug=True , port=1234)
