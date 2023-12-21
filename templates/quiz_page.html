@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
+ 
 <head>
     <meta charset="UTF-8">
     <title>Quiz Page</title>
@@ -20,11 +20,11 @@
             transition: background-color 0.3s;
             z-index: 3;
         }
-
+ 
         .back-btn:hover {
             background-color: #0056b3;
         }
-
+ 
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
@@ -32,7 +32,7 @@
             background: url('https://cdn2.vectorstock.com/i/1000x1000/99/11/tv-quiz-show-host-and-two-participants-happy-vector-33229911.jpg') no-repeat center center fixed;
             background-size: cover;
         }
-
+ 
         .container {
             max-width: 800px;
             margin: 80px auto;
@@ -45,25 +45,25 @@
             overflow-y: auto; /* Enable vertical scrolling */
             max-height: calc(100vh - 90px); /* Set maximum height (viewport height minus some padding) */
         }
-
+ 
         h1 {
             color: #3498db;
             margin-top: 0;
         }
-
+ 
         .question {
             margin-bottom: 20px;
         }
-
+ 
         input[type="radio"] {
             margin-right: 5px;
         }
-
+ 
         label {
             display: inline-block;
             margin-bottom: 8px;
         }
-
+ 
         input[type="submit"] {
             background-color: #3498db;
             color: #fff;
@@ -73,11 +73,11 @@
             cursor: pointer;
             font-size: 16px;
         }
-
+ 
         input[type="submit"]:hover {
             background-color: #2980b9;
         }
-
+ 
         /* Styles for the button */
         #cameraButton {
             background-color: #333; /* Setting a dark background color */
@@ -111,18 +111,18 @@
             width: 100%;
             height: 100%;
         }
-
+ 
         #quizForm {
             margin-top: 40px; /* Adjust the margin to give space for the video box */
         }
-
+ 
         .question {
             margin-bottom: 20px;
         }
-
-        
+ 
+       
     </style>
-    
+   
     <script>
         async function grantCameraAccess() {
             try {
@@ -145,49 +145,50 @@
                 });
             }
         }
-
+   
         window.onload = function () {
             window.addEventListener('beforeunload', function (event) {
                 event.returnValue = "Refreshing the page will lose your answers. Are you sure you want to refresh?";
             });
-
+   
             // Call the function to grant camera access on page load
             grantCameraAccess();
-
+   
             // Set the duration of the timer in seconds (1 minute = 60 seconds)
-            const duration = 60;
-
+            const duration = 20;  //change time here
+   
             // Display the timer
             const timerDisplay = document.getElementById('timer');
             const timeUpMessage = document.getElementById('timeUpMessage');
             let timer = duration, minutes, seconds;
-
+   
+            function submitQuizAutomatically() {
+                // Trigger the form submission
+                document.getElementById('quizForm').submit();
+            }
+   
             setInterval(function () {
                 minutes = parseInt(timer / 60, 10);
                 seconds = parseInt(timer % 60, 10);
-
+   
                 minutes = minutes < 10 ? "0" + minutes : minutes;
                 seconds = seconds < 10 ? "0" + seconds : seconds;
-
+   
                 timerDisplay.textContent = minutes + ":" + seconds;
-
-            //     if (--timer < 0) {
-            //         // When the timer reaches 0, display the time up message and disable form submission
-            //         timeUpMessage.style.display = 'block';
-            //         document.getElementById('quizForm').addEventListener('submit', (event) => {
-            //             event.preventDefault();
-            //             alert('Time is up! You cannot submit the quiz.');
-            //             window.location.href = "/collect_feedback";
-            //         });
-            //     }
-            // }, 1000);
-                   if (--timer < 0) {
-            // When the timer reaches 0, submit the form
-            document.getElementById('quizForm').submit();
+   
+                if (timer <= 0) {
+                    // When the timer reaches 0, display the time up message and automatically submit the quiz
+                    timeUpMessage.style.display = 'block';
+                    submitQuizAutomatically();
+                }
+   
+                // Decrement the timer after checking if it's 0
+                if (timer > 0) {
+                    --timer;
+                }
+            }, 1000);
         }
-    }, 1000);
-        }
-
+   
         document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('cameraButton').addEventListener('click', function () {
                 // Call the function to grant camera access when the button is clicked
@@ -195,32 +196,23 @@
             });
         });
     </script>
-
-    
+   
+   
 </head>
-
+ 
 <body>
     <a href="javascript:history.back()" class="back-btn">&lt; Back</a>
     <div class="container">
-        
-
         <h1>Quiz Page</h1>
-           
-           
-            
-     
             <!-- Box for displaying the video stream -->
             <div id="videoBox">
                 <video id="cameraFeed" autoplay playsinline></video>
             </div>
-
-            <!-- Add this hidden input field to store the captured image data -->
-            <input type="hidden" id="capturedImageData" name="capturedImageData" value="">
-
-            <!-- Timer display and time up message -->
+ 
+        <!-- Timer display and time up message -->
         <div id="timer">01:00</div>
         <div id="timeUpMessage" style="color: red; font-size: 18px; display: none;">Time is up! You cannot submit the quiz.</div>
-
+ 
         <form id="quizForm" action="/quiz" method="post">
             {% for question, data in questions %}
             <div class="question">
@@ -231,10 +223,10 @@
                 {% endfor %}
             </div>
             {% endfor %}
-            <input type="submit" value="Submit">
+            <input type="submit" id="submitQuiz" value="Submit">
         </form>
     </div>
-
+ 
 </body>
-
+ 
 </html>

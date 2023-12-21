@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questions</title>
+</head>
+
+<body>
+    <h1>Questions</h1>
+    <form action="submit_form_action" method="post">
+        <ul>
+            {% for question in questions %}
+                <li>
+                    <p>{{ question['Question'] }}</p>
+                    {% for option in question.values() %}
+                        {% if option != question['Question'] %}
+                            <label>
+                                <input type="radio" name="{{ question['Question'] }}" value="{{ option }}"> {{ option }}
+                            </label><br>
+                        {% endif %}
+                    {% endfor %}
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+
+</html>
