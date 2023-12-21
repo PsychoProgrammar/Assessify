@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Coding Questions</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+        /* Styles for the button */
+        #cameraButton {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+       
+        /* Style when hovering over the button */
+        #cameraButton:hover {
+            background-color: #2980b9; /* Darker background color on hover */
+        }
+ 
+        /* Box for displaying the video stream */
+        #videoBox {
+            width: 300px;
+            height: 200px;
+            border: 2px solid #3498db;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: none;
+            z-index: 2;
+            top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+ 
+        /* Video styling */
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .question {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            user-select: none;
+        }
+
+        p {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        /* Styles for the code textarea */
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            
+        }
+
+        /* Styles for the submit button */
+        .submit-btn {
+            background-color: #3498db;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+    <script>
+        /* Copy the camera access script from the quiz page */
+        async function grantCameraAccess() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Handle stream - display in the video element
+                const video = document.getElementById('cameraFeed');
+                video.srcObject = stream;
+                video.onloadedmetadata = (e) => {
+                    video.play();
+                };
+                document.getElementById('videoBox').style.display = 'block'; // Display the video box
+                alert('Camera access granted!');
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Please allow camera access to proceed with the coding questions.');
+                // Prevent form submission if camera access is denied
+                document.getElementById('codingQuestionsForm').addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    alert('Cannot proceed without camera access.');
+                });
+            }
+        }
+
+        window.onload = function () {
+            // Call the function to grant camera access on page load
+            grantCameraAccess();
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Attach the camera access function to the button click event
+            document.getElementById('cameraButton').addEventListener('click', function () {
+                grantCameraAccess();
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <h1>Coding Questions</h1>
+
+    
+    <div id="videoBox">
+        <video id="cameraFeed" autoplay playsinline></video>
+    </div>
+
+    <div class="question">
+        <!-- Your existing question and form elements here -->
+
+        <form id="codingQuestionsForm" action="/submit_code" method="POST">
+            <p>Question 1: Write a code to reverse a string.</p>
+            <textarea name="user_code_1" placeholder="Write your code here..."></textarea>
+            <!-- <br>
+            <button type="submit" class="submit-btn">Submit Code</button> -->
+
+            <p>Question 2: Write a code to add two numbers.</p>
+            <textarea name="user_code_2" placeholder="Write your code here..."></textarea>
+
+            <br>
+            <button type="submit" class="submit-btn">Submit Code</button>
+        </form>
+
+        
+    </div>
+</body>
+
+</html>

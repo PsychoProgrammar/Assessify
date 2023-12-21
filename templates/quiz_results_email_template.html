@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Results</title>
+    <!-- Add your CSS styling here if needed -->
+</head>
+<body>
+    <h1>Quiz Results</h1>
+    <p>Dear User,</p>
+    
+    <p>Thank you for participating in the quiz. Here are the names and emails of users who scored 3 or above:</p>
+    
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+        </tr>
+        {% for user in users %}
+            {% if user.quiz_score >= 3 %}
+                <tr>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.email }}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+
+    <p>Thank you,</p>
+    <p>Your Quiz Team</p>
+</body>
+</html>

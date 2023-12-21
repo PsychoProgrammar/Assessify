@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz</title>
+</head>
+<body>
+    <h1>Welcome to the quiz </h1>
+    <h5>Quiz Questions</h5>
+
+    <form action="/quiz" method="post">
+        {% for question, data in questions %}
+        <h3>{{ question }}</h3>
+        {% for option in data.options %}
+        <input type="radio" id="{{ option }}" name="{{ question }}" value="{{ option }}">
+        <label for="{{ option }}">{{ option }}</label><br>
+        {% endfor %}
+        <br>
+        {% endfor %}
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

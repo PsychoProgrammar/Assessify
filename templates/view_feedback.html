@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>View Feedback</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Add any additional styles or scripts as needed -->
+    <style>
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #0056b3;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('https://thumbs.dreamstime.com/b/text-sign-showing-your-feedback-matters-concept-business-282152901.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #f5f5f5;
+            text-align: center;
+            background-color: #007bff;
+            padding: 20px;
+            margin: 0;
+            width: 100%;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: rgba(255, 255, 255, 0.8); /* Transparent white background */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        td {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="javascript:history.back()" class="back-btn">&lt; Back</a>
+    <h1>Feedbacks</h1>
+
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Feedback</th>
+        </tr>
+        {% for feedback in feedbacks|custom_sort %}
+            <tr>
+                <td>
+                    {% if feedback.timestamp %}
+                    {{ convert_utc_to_ist(feedback.timestamp)|safe }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>{{ feedback.name }}</td>
+                <td>{{ feedback.email }}</td>
+                <td>{{ feedback.feedback }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <script>
+        // Custom Jinja filter to handle sorting with None values
+        window.jinjaEnv.filters.custom_sort = function (array) {
+            return array.slice().sort(function (a, b) {
+                if (a.timestamp && b.timestamp) {
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                } else if (a.timestamp) {
+                    return -1; // 'a' has a timestamp, so it comes first
+                } else if (b.timestamp) {
+                    return 1; // 'b' has a timestamp, so it comes first
+                } else {
+                    return 0; // both are None, no preference
+                }
+            });
+        };
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Quiz - Add Questions</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <a href="{{ url_for('admin_dashboard') }}" class="back-btn">&lt; Back to Admin Dashboard</a>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-title">Create Quiz - Add Questions</div>
+                    <!-- Add your form for adding questions here -->
+                    <form action="{{ url_for('submit_questions') }}" method="post">
+                        <!-- Add form fields for questions, options, and correct answer -->
+                        <!-- Example: -->
+                        <div class="form-group">
+                            <label for="question">Question:</label>
+                            <input type="text" class="form-control" id="question" name="question" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="options">Options:</label>
+                            <input type="text" class="form-control" name="options[]" required>
+                            <input type="text" class="form-control" name="options[]" required>
+                            <!-- Add more options as needed -->
+                        </div>
+                        <div class="form-group">
+                            <label for="correct_answer">Correct Answer:</label>
+                            <input type="text" class="form-control" id="correct_answer" name="correct_answer" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Question</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

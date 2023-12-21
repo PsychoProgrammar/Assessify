@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Not Eligible</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #d9534f; /* Bootstrap's danger color */
+        }
+
+        p {
+            font-size: 18px;
+        }
+
+        /* Add more styles or customize according to your preference */
+    </style>
+</head>
+<body>
+    <h1>Sorry!</h1>
+    <p>Your score is too low. You are not eligible for the coding round.</p>
+
+    <p>Please give us your feedback:</p>
+    <a href="{{ url_for('show_feedback_form') }}"><button>Feedback</button></a>
+</body>
+</html>

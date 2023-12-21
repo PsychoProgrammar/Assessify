@@ -1,2 +1,0 @@
-# Assessify
-SRE Assessment app

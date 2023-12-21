@@ -1,4 +1,4 @@
-from flask import Flask, request,render_template, redirect,session, send_file, url_for,render_template_string
+from flask import Flask, request,render_template, redirect,session, send_file, url_for,render_template_string , jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask import jsonify
@@ -13,6 +13,8 @@ from flask_mail import Mail, Message
 from datetime import datetime
 import pytz
 from pytz import timezone
+import pandas as pd
+
 
 
 
@@ -72,6 +74,9 @@ class User(db.Model):
     image_filename = db.Column(db.String(255), nullable=True)
     image_data = db.Column(db.LargeBinary, nullable=True)
     submission_time = db.Column(db.DateTime, default=datetime.utcnow)  # UTC time             # Add this field to store submission time
+
+    # Add a new field to store user-submitted codes
+    codes = db.relationship('UserCode', backref='user', lazy=True)
     
  
     def __init__(self,name,email,password, phone , proficiency,resume_filename=None, resume_data=None,image_filename=None, image_data=None):
@@ -92,6 +97,17 @@ class User(db.Model):
    
     def check_password(self,password):
         return password
+    
+
+class UserCode(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    code = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, user_id, code):
+        self.user_id = user_id
+        self.code = code
 
 
 def custom_sort(feedbacks):
@@ -175,7 +191,8 @@ questions = {
 questions_coding = [
     {
         "id": 1,
-        "description": "Write a function is_palindrome(s) that takes a string s as input and returns True if s is a palindrome, otherwise False. A palindrome is a word, phrase, number, or other sequence of characters that reads the same forward and backward. Example: 'racecar', 'level'.",
+        "description": "Write a function is_palindrome(s) that takes a string s as input and returns True if s is a palindrome, otherwise False."
+         " A palindrome is a word, phrase, number, or other sequence of characters that reads the same forward and backward. Example: 'racecar', 'level'.",
         "tests": [  # Sample test cases
             {"input": ["racecar"], "output": True},
             {"input": ["hello"], "output": False},
@@ -191,7 +208,7 @@ questions_coding = [
             # Add more test cases if needed
         ]
     }
-    # Add more questions as needed
+    
 ]
 
  
@@ -212,15 +229,15 @@ def register():
 
         new_user = User(name=name,email=email,password=password,phone=phone,proficiency=proficiency_str)
 
-        # Handle file upload for the resume
+        
         if 'resume' in request.files:
             resume_file = request.files['resume']
             if resume_file and resume_file.filename != '':
-                # Save resume details in the database
+                
                 new_user.resume_filename = resume_file.filename
                 new_user.resume_data = resume_file.read()
 
-         # Handle image upload
+         
         if 'image' in request.files:
          image = request.files['image']
         if image.filename != '':
@@ -248,23 +265,15 @@ with app.app_context():
 @app.route('/login', methods=['GET'])
 def login():
     if 'admin' in request.args:
-        # Redirect to Admin Login page (assuming you have an admin login route)
+        
         return redirect('/login/admin')
     if 'user' in request.args:
-        # Redirect to User Login page (assuming you have a user login route)
+        
         return redirect('/login/user')
-    # else:
-    #     # Handle cases where no option is selected (You can render a specific error page)
-    #     return render_template('error.html', error='Please select an option to login.')
     
-    # Ensure session is initialized
     session.clear()
 
-    # Add a return statement for cases where no option is selected
     return render_template('admin_dashboard.html')
- 
- 
- 
  
 @app.route('/login/admin', methods=['GET', 'POST'])
 def admin_login():
@@ -303,9 +312,8 @@ def user_dashboard():
         if user:
          return render_template('user_dashboard.html',user=user)
     else:
-         # Handle the case when 'email' is not in the session
+
          print("Email not found in session.")
-    # You might want to redirect the user to a login page or handle it in some way
 
     return redirect('/login')
  
@@ -313,20 +321,16 @@ def user_dashboard():
 def admin_dashboard():
     if 'email' in session:
         user = User.query.filter_by(email=session['email']).first()
-        if 'admin' in session and user:  # Check if the logged-in user is an admin
+        if 'admin' in session and user:  
             feedbacks = Feedback.query.all()
             return render_template('admin_dashboard.html', user=user,feedbacks=feedbacks)
-        # else:
-        #     return render_template('dashboard.html', user=user)
     return redirect('/login')
 
 @app.route('/view_feedback')
 def view_feedback():
     with app.app_context():
-        # Calculate the date 5 days ago from the current date
         five_days_ago = datetime.utcnow() - timedelta(days=5)
 
-        # Query for feedback entries given in the past 5 days
         feedback_entries = Feedback.query.filter(Feedback.timestamp >= five_days_ago).all()
         
         return render_template('view_feedback.html', feedbacks=feedback_entries, convert_utc_to_ist=convert_utc_to_ist)
@@ -352,30 +356,6 @@ def delete_user(user_id):
     else:
         return jsonify({'message': 'User not found'}), 404
  
-# @app.route('/edit', methods=['GET', 'POST'])
-# def edit_details():
-#     if 'email' in session:
-#         user = User.query.filter_by(email=session['email']).first()
-       
-#         if request.method == 'POST':
-           
-#             user.name = request.form['name']
-#             # user.password=request.form['password']
-#             user.email = request.form['email']
-#             user.phone = request.form['phone']
-#             user.proficiency = None
-
-#              # Add selected proficiencies
-#             selected_proficiencies = request.form.getlist('proficiency[]')
-#             user.proficiency = ','.join(selected_proficiencies)
-           
-#             db.session.commit()
-#             return redirect('/user_dashboard')
-       
-#         return render_template('edit.html', user=user)
-#     # return redirect('/login')
- 
- 
 @app.route('/collect_feedback')
 def show_feedback_form():
     return render_template('collect_feedback.html')
@@ -389,12 +369,10 @@ def submit_feedback():
        
         app.logger.info(f"Received feedback from {name} ({email}): {feedback_text}")
 
-        # Check if feedback already exists for the given email
         existing_feedback = Feedback.feedback_exists(email)
         if existing_feedback:
             return "You have already provided feedback :)"
         
-        # Create a new Feedback instance or use your existing User model to store feedback
         feedback_instance = Feedback(name=name, email=email, feedback=feedback_text)
         db.session.add(feedback_instance)
         db.session.commit()
@@ -407,7 +385,6 @@ def index2():
         user = User.query.filter_by(email=session['email']).first()
         if user.quiz_score is not None:
             return render_template('already_taken.html')
-    # Select 3 random questions for the quiz each time the page is refreshed
     selected_questions = random.sample(list(questions.items()), 5)
     return render_template('quiz_page.html', questions=selected_questions)
 
@@ -417,15 +394,12 @@ def quiz():
     score = 0
     user_answers = request.form
 
-    # Retrieve the user based on the session email
     user = User.query.filter_by(email=session["email"]).first()
     
     for question, answer in user_answers.items():
         if questions[question]["answer"] == answer:
             score += 1
 
-    
-    # Update the user's quiz score in the database
     user.quiz_score = score
     db.session.commit()
 
@@ -433,13 +407,6 @@ def quiz():
         return redirect(url_for('coding_eligibility', score=score))
     elif score < 3:
         return redirect(url_for('not_eligible'))
-    # else:
-    #     return render_template('quiz_result.html', score=score)
-    
-# @app.route('/coding-questions')
-# def coding_questions():
-#     # Logic to display coding questions goes here
-#     return render_template('coding_questions.html')  # or the actual template for coding questions
  
  
 @app.route('/coding_eligibility/<int:score>')
@@ -461,9 +428,6 @@ def view_quiz_results():
 def download_resume(user_id):
     user = User.query.get(user_id)
     if user and user.resume_filename and user.resume_data:
-        # return send_file(BytesIO(user.resume_data),
-        #                  attachment_filename=user.resume_filename,
-        #                  as_attachment=True)
         return send_file(
             io.BytesIO(user.resume_data),
             download_name=user.resume_filename,
@@ -476,7 +440,7 @@ def download_resume(user_id):
 def get_image(filename):
     user = User.query.filter_by(image_filename=filename).first()
     if user:
-        return send_file(BytesIO(user.image_data), mimetype='image/jpeg')  # Adjust mimetype as needed
+        return send_file(BytesIO(user.image_data), mimetype='image/jpeg')  
     return 'Image not found', 404
 
 
@@ -488,35 +452,34 @@ def create_quiz_category():
         return redirect(url_for('create_quiz_questions'))
     return render_template('create_quiz_category.html')
 
-# Add a global variable to store questions
 python_questions = []
 
 @app.route('/create_quiz_questions', methods=['GET', 'POST'])
 def create_quiz_questions():
     if request.method == 'POST':
-        # Handle form submission and add questions to the global variable or database
         question_text = request.form.get('question')
         options = [
             request.form.get('option1'),
             request.form.get('option2'),
-            # Add more options as needed
+            
         ]
         correct_answer = request.form.get('correct_answer')
 
-        # Create a dictionary to represent the question
+      
         question = {
             'text': question_text,
             'options': options,
             'correct_answer': correct_answer
         }
-
-        # Store the question in the global variable or database
         python_questions.append(question)
-
-        # Redirect to Python questions page
         return redirect(url_for('python_questions_page'))
 
     return render_template('create_quiz_questions.html')
+
+# @app.route('/fetch_questions')
+# def fetch_questions():
+#     # Replace with your actual file path
+#     file_path = 'C:/Users/7000035077/Desktop/First Challenge/templates/questions.xlsx'
 
 
 
@@ -532,37 +495,17 @@ def submit_questions():
         db.session.add(new_question)
         db.session.commit()
 
-        # Create a dictionary to represent the question
+       
         question = {
             'text': question_text,
             'options': options,
             'correct_answer': correct_answer
         }
 
-        # Store the question in the global variable
         python_questions.append(question)
 
-        
-
-        # Redirect to Python questions page
         return redirect(url_for('python_questions_page'))
     
-
-# @app.route('/top_score')
-# def top_score():
-#     # Fetch the user with the highest quiz score
-#     user_highest_score = User.query.filter(User.quiz_score.isnot(None)).order_by(User.quiz_score.desc()).first()
-
-#     if user_highest_score:
-#         top_score_info = {
-#             'name': user_highest_score.name,
-#             'email': user_highest_score.email,
-#             'quiz_score': user_highest_score.quiz_score,
-#             'quiz_taken_time': convert_utc_to_ist(user_highest_score.timestamp)
-#         }
-#         return jsonify(top_score_info)
-#     else:
-#         return jsonify({'message': 'No user has taken the quiz yet.'}), 404
 
 @app.route('/top_score')
 def top_score():
@@ -580,17 +523,101 @@ def convert_utc_to_ist(utc_time):
 @app.route('/coding-questions')
 def coding_questions():
     return render_template('coding_questions.html', questions_coding=questions_coding)
-
-@app.route('/submit-code', methods=['POST'])
+    
+@app.route('/submit_code', methods=['POST'])
 def submit_code():
-    user_code = request.json.get('code')
-    question_id = int(request.json.get('question_id'))
+    if request.method == 'POST':
+        # Get the user's email from the session
+        email = session.get('email')
+        if not email:
+            return jsonify({'message': 'User not logged in'}), 403
 
-    # Logic to run user's code against test cases for the specified question_id
-    # Implement this part based on your requirements (e.g., using Python's `exec` function or other sandboxed execution)
+        # Find the user in the database
+        user = User.query.filter_by(email=email).first()
 
-    # For demonstration, sending a dummy response
-    return jsonify({"result": "Code submitted successfully."})
+        if user:
+        # Get the code from the form submission
+         user_code_1 = request.form.get('user_code_1')
+         user_code_2 = request.form.get('user_code_2')
+
+        # Save the code in the database
+        new_user_code_1 = UserCode(user_id=user.id, code=user_code_1)
+        new_user_code_2 = UserCode(user_id=user.id, code=user_code_2)
+        
+        db.session.add(new_user_code_1)
+        db.session.add(new_user_code_2)
+        
+        db.session.commit()
+
+        return redirect('/coding_submissions')
+
+    # Handle the case where the form submission fails
+    return jsonify({'message': 'Error submitting codes'}), 500
+
+@app.route('/coding_submissions')
+def coding_submissions():
+    if 'email' in session:
+        user = User.query.filter_by(email=session['email']).first()
+        if user:
+            # Retrieve user's submitted codes
+            user_codes = UserCode.query.filter_by(user_id=user.id).all()
+            return render_template('coding_submissions.html', user=user, user_codes=user_codes)
+
+    return redirect('/login/user')
+
+@app.route('/view_coding/<int:user_id>')
+def view_coding(user_id):
+    user = User.query.get(user_id)
+    if user:
+        # Retrieve user's submitted codes
+        user_codes = UserCode.query.filter_by(user_id=user.id).all()
+        return render_template('view_coding.html', user=user, user_codes=user_codes)
+    else:
+        return jsonify({'message': 'User not found'}), 404
+    
+@app.route('/update_coding_score/<int:user_id>', methods=['POST'])
+def update_coding_score(user_id):
+    if request.method == 'POST':
+        # Get the user from the database
+        user = User.query.get(user_id)
+
+        if user:
+            # Get the coding score from the form submission
+            coding_score = int(request.form.get('codingScore'))
+
+            # Update the user's coding score in the database
+            user.coding_score = coding_score
+            db.session.commit()
+
+            # Redirect to the "View Quiz Results" page after the update
+            return redirect('/view_quiz_results')
+
+    # Handle the case where the form submission fails
+    return jsonify({'message': 'Error updating coding score'}), 500
+
+
+
+
+
+
+
+
+
+
+
+
+
+# @app.route('/update_coding_score/<int:user_id>', methods=['POST'])
+# def update_coding_score(user_id):
+#     user = User.query.get(user_id)
+#     if user:
+#         new_coding_score = int(request.form.get('codingScore'))
+#         user.coding_score = new_coding_score
+#         db.session.commit()
+#     return redirect(url_for('view_quiz_results'))
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True , port=1234)
