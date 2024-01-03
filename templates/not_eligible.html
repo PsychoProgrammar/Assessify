@@ -26,7 +26,21 @@
             font-size: 18px;
         }
 
-        /* Add more styles or customize according to your preference */
+        .collect-feedback-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        margin-top: 20px;
+        text-decoration: none;
+        background-color: #007bff;
+        color: #fff;
+        border-radius: 4px;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+
+    .collect-feedback-btn:hover {
+        background-color: #0056b3;
+    }
     </style>
 </head>
 <body>
@@ -34,6 +48,6 @@
     <p>Your score is too low. You are not eligible for the coding round.</p>
 
     <p>Please give us your feedback:</p>
-    <a href="{{ url_for('show_feedback_form') }}"><button>Feedback</button></a>
+    <a href="{{ url_for('show_feedback_form') }}" class="collect-feedback-btn">Collect Feedback</a>
 </body>
 </html>

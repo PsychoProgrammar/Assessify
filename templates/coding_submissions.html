@@ -40,6 +40,24 @@
             overflow-x: auto;
             border: 1px solid #bdc3c7;
         }
+
+        .collect-feedback-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        margin-top: 20px;
+        text-decoration: none;
+        background-color: #007bff;
+        color: #fff;
+        border-radius: 4px;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+
+    .collect-feedback-btn:hover {
+        background-color: #0056b3;
+    }
+
+        
     </style>
 </head>
 <body>
@@ -54,5 +72,7 @@
             <pre>{{ user_code.code }}</pre>
         </div>
     {% endfor %}
+    <!-- Add the button for collecting feedback -->
+    <a href="{{ url_for('show_feedback_form') }}" class="collect-feedback-btn">Collect Feedback</a>
 </body>
 </html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+    
+        h1 {
+            color: #007BFF;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    
+        form {
+            margin-top: 20px;
+            text-align: center;
+        }
+    
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+            color: #007BFF;
+        }
+    
+        input[type="file"] {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
+        }
+    
+        button {
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    
+        button:hover {
+            background-color: #0056b3;
+        }
+    
+        p.error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+    
+        h2 {
+            margin-top: 30px;
+            color: #007BFF;
+        }
+    
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+    
+        li {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    
+        li p {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+    
+        ul.options {
+            padding: 0;
+            margin-top: 10px;
+        }
+    
+        li.options-item {
+            margin: 10px 0;
+        }
+    
+        li.options-item::before {
+            content: '\2022'; /* Bullet point */
+            color: #007BFF;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+    </style>
+    
+</head>
+<body>
+    <h1>Upload Questions</h1>
+
+    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+        <label for="file">Upload Excel File:</label>
+        <input type="file" name="file" accept=".xlsx, .xls">
+        <button type="submit">Upload</button>
+    </form>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    {% if questions %}
+        <h2>Uploaded Questions</h2>
+        <form style="text-align: left;">
+            {% for q in questions %}
+                <fieldset>
+                    <legend>{{ q['question'] }}</legend>
+                    {% for option in q['options'] %}
+                        <label style="display: block; margin-bottom: 5px;">
+                            <input type="radio" name="question{{ loop.index }}" value="{{ option }}">
+                            {{ option }}
+                        </label>
+                    {% endfor %}
+                    <p>Correct Option: {{ q['correct_option'] }}</p> 
+                </fieldset>
+                <br>
+            {% endfor %}
+        </form>
+    {% else %}
+        <p>No questions uploaded.</p>
+    {% endif %}
+</body>
+</html>

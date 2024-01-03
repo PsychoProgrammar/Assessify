@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionnaire</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+ 
+<div class="container mt-4">
+<h1 class="mb-4">Add Questions </h1>
+ 
+    <div class="form-group">
+<label for="proficiency">Select Proficiency:</label>
+<select id="proficiency" class="form-control" onchange="getQuestions()">
+            {% for proficiency in proficiencies %}
+<option value="{{ proficiency }}">{{ proficiency }}</option>
+            {% endfor %}
+</select>
+</div>
+ 
+    <hr>
+   <!-- Modify the Add Question section in index.html -->
+   <div class="mb-4">
+    <h2>Add Question</h2>
+     
+        <div class="form-group">
+    <label for="question">Question:</label>
+    <input type="text" id="question" class="form-control">
+    </div>
+     
+        <div class="form-group">
+    <label for="options">Options (comma-separated):</label>
+    <input type="text" id="options" class="form-control">
+    </div>
+     
+        <div class="form-group">
+    <label for="correctOption">Correct Option:</label>
+    <input type="text" id="correctOption" class="form-control" placeholder="Enter correct option">
+    </div>
+     
+        <button onclick="addQuestion()" class="btn btn-primary">Add Question</button>
+    </div>
+    <hr>
+ 
+    <div>
+<h2>Questions for Selected Proficiency</h2>
+<ul id="questionsList" class="list-group"></ul>
+</div>
+</div>
+ 
+<script>
+    function addQuestion() {
+        const proficiency = document.getElementById('proficiency').value;
+        const question = document.getElementById('question').value;
+        const options = document.getElementById('options').value.split(',');
+        const correctOption = document.getElementById('correctOption').value;
+ 
+        $.ajax({
+            type: 'POST',
+            url: '/add_question',
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({ proficiency, question, options, correctOption }),
+            success: function (response) {
+                alert('Question added successfully!');
+                clearInputs();
+                getQuestions();
+            }
+        });
+    }
+    // let editedQuestion = null;
+ 
+    // function editQuestion(proficiency, question) {
+    //     $.ajax({
+    //         type: 'POST',
+    //         url: '/edit_question',
+    //         contentType: 'application/json;charset=UTF-8',
+    //         data: JSON.stringify({ proficiency, question }),
+    //         success: function (response) {
+    //             editedQuestion = response.question;
+    //             document.getElementById('question').value = editedQuestion.question;
+    //             document.getElementById('options').value = editedQuestion.options.join(', ');
+    //             document.getElementById('correctOption').value = editedQuestion.correctOption;
+    //         }
+    //     });
+    // }
+ 
+    // function addOrUpdateQuestion() {
+    //     if (editedQuestion) {
+    //         // If editing, update the existing question
+    //         const index = questions_by_proficiency[editedQuestion.proficiency].findIndex(q => q.question === editedQuestion.question);
+    //         questions_by_proficiency[editedQuestion.proficiency][index] = {
+    //             'question': document.getElementById('question').value,
+    //             'options': document.getElementById('options').value.split(','),
+    //             'correctOption': document.getElementById('correctOption').value
+    //         };
+ 
+    //         // Reset the editedQuestion variable
+    //         editedQuestion = null;
+    //     } else {
+    //         // If not editing, add a new question
+    //         const proficiency = document.getElementById('proficiency').value;
+    //         const question = document.getElementById('question').value;
+    //         const options = document.getElementById('options').value.split(',');
+    //         const correctOption = document.getElementById('correctOption').value;
+ 
+    //         questions_by_proficiency[proficiency].push({
+    //             'question': question,
+    //             'options': options,
+    //             'correctOption': correctOption
+
+                
+    //         });
+    //         window.location.href = "/view_questions";
+    //     }
+ 
+    //     // Clear inputs and refresh the questions list
+        clearInputs();
+        getQuestions();
+    function getQuestions() {
+        const proficiency = document.getElementById('proficiency').value;
+ 
+        $.ajax({
+            type: 'POST',
+            url: '/get_questions',
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({ proficiency }),
+            success: function (response) {
+                const questionsList = document.getElementById('questionsList');
+                questionsList.innerHTML = '';
+ 
+                response.questions.forEach(function (q, index) {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item';
+                    li.textContent = `Question: ${q.question}, Options: ${q.options.join(', ')}`;
+ 
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'btn btn-danger btn-sm float-right';
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = function () {
+                        deleteQuestion(proficiency, index);
+                    };
+ 
+                    li.appendChild(deleteButton);
+                    questionsList.appendChild(li);
+                });
+            }
+        });
+    }
+ 
+    function deleteQuestion(proficiency, index) {
+        $.ajax({
+            type: 'POST',
+            url: '/delete_question',
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({ proficiency, index }),
+            success: function (response) {
+                alert('Question deleted successfully!');
+                getQuestions();
+            }
+        });
+    }
+ 
+    function clearInputs() {
+        document.getElementById('question').value = '';
+        document.getElementById('options').value = '';
+    }
+    
+</script>
+<div class="mt-4">    <a href="/view_questions" class="btn btn-info">View Added Questions</a></div>
+ 
+</body>
+</html>
+
+                                 

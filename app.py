@@ -11,22 +11,41 @@ import pytz
 from werkzeug.utils import secure_filename
 from flask_mail import Mail, Message
 import pandas as pd
-
-
+from flask_bootstrap import Bootstrap
+from threading import Thread
+from flask import copy_current_request_context
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+bootstrap = Bootstrap(app)
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587  # Change to your mail server port
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = 'shreyaballolli@gmail.com'
+app.config['MAIL_PASSWORD'] = 'shreya_66'
+app.config['MAIL_DEFAULT_SENDER'] = 'shreyaballolli@gmail.com'
+app.config['UPLOAD_FOLDER'] = 'path/to/your/upload/folder'
+app.config['ALLOWED_EXTENSIONS'] = {'xlsx', 'xls'}
+mail = Mail(app)
+proficiencies = ["C", "C++", "Java","Python"]
+questions_by_proficiency = {proficiency: [] for proficiency in proficiencies}
 # Assuming you have an Excel file named 'questions.xlsx' with a sheet named 'questions'
 SPREADSHEET_PATH = 'questions.xlsx'
 SHEET_NAME = 'questions'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-db = SQLAlchemy(app)
 
+db = SQLAlchemy(app)
 
 # db.init_app(app)
 
 # from models import Feedback
+
+
 migrate = Migrate(app, db)
 app.secret_key = 'secret_key'
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 class QuizQuestion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -70,11 +89,15 @@ class User(db.Model):
     resume_data = db.Column(db.LargeBinary, nullable=True)
     image_filename = db.Column(db.String(255), nullable=True)
     image_data = db.Column(db.LargeBinary, nullable=True)
-    # Add a new field to store user-submitted codes
-    codes = db.relationship('UserCode', backref='user', lazy=True)
+    coding_score = db.Column(db.Integer, nullable=True)
+    status = db.Column(db.String(20), default='Pending') 
+
+    def update_coding_score(self, new_coding_score):
+        self.coding_score = new_coding_score
+        db.session.commit()
     
  
-    def __init__(self,name,email,password, phone , proficiency,resume_filename=None, resume_data=None,image_filename=None, image_data=None):
+    def __init__(self,name,email,password, phone , proficiency,resume_filename=None, resume_data=None,image_filename=None, image_data=None, status=None):
         self.name = name
         self.email = email
         self.password = password
@@ -84,27 +107,16 @@ class User(db.Model):
         self.resume_data = resume_data
         self.image_filename=image_filename
         self.image_data=image_data
-        # self.quiz_score=quiz_score
-        # self.feedback=feedback
-        # self.quiz_experience=quiz_experience
-        # self.quiz_difficulty
+        self.status=status
    
     def check_password(self,password):
         return password
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 def custom_sort(feedbacks):
      return sorted(feedbacks, key=lambda x: x.timestamp if x.timestamp else datetime.min, reverse=True)
-
-class UserCode(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    code = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __init__(self, user_id, code):
-        self.user_id = user_id
-        self.code = code
 
 # Function to convert UTC time to IST
 def convert_utc_to_ist(utc_time_str):
@@ -121,6 +133,18 @@ def convert_utc_to_ist(utc_time_str):
         return 'N/A'
 app.jinja_env.filters['custom_sort'] = custom_sort
 app.jinja_env.filters['convert_utc_to_ist'] = convert_utc_to_ist   
+
+class UserCode(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    code = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, user_id, code):
+        self.user_id = user_id
+        self.code = code
+
+
    
 # Hardcoded admin credentials
 ADMIN_EMAIL = 'admin@example.com'
@@ -339,30 +363,7 @@ def delete_user(user_id):
     else:
         return jsonify({'message': 'User not found'}), 404
  
-# @app.route('/edit', methods=['GET', 'POST'])
-# def edit_details():
-#     if 'email' in session:
-#         user = User.query.filter_by(email=session['email']).first()
-       
-#         if request.method == 'POST':
-           
-#             user.name = request.form['name']
-#             # user.password=request.form['password']
-#             user.email = request.form['email']
-#             user.phone = request.form['phone']
-#             user.proficiency = None
 
-#              # Add selected proficiencies
-#             selected_proficiencies = request.form.getlist('proficiency[]')
-#             user.proficiency = ','.join(selected_proficiencies)
-           
-#             db.session.commit()
-#             return redirect('/user_dashboard')
-       
-#         return render_template('edit.html', user=user)
-#     # return redirect('/login')
- 
- 
 @app.route('/collect_feedback')
 def show_feedback_form():
     return render_template('collect_feedback.html')
@@ -466,14 +467,6 @@ def get_image(filename):
         return send_file(BytesIO(user.image_data), mimetype='image/jpeg')  # Adjust mimetype as needed
     return 'Image not found', 404
 
-
-@app.route('/create_quiz_category', methods=['GET', 'POST'])
-def create_quiz_category():
-    if request.method == 'POST':
-        quiz_category = request.form.get('quiz_category')
-        session['quiz_category'] = quiz_category
-        return redirect(url_for('create_quiz_questions'))
-    return render_template('create_quiz_category.html')
 
 # Add a global variable to store questions
 python_questions = []
@@ -617,25 +610,143 @@ def view_coding(user_id):
     
 @app.route('/update_coding_score/<int:user_id>', methods=['POST'])
 def update_coding_score(user_id):
-    if request.method == 'POST':
-        # Get the user from the database
-        user = User.query.get(user_id)
+    # Retrieve the user from the database
+    user = User.query.get(user_id)
+    if user:
+        # Update the coding score
+        new_coding_score = int(request.form.get('codingScore'))
+        user.update_coding_score(new_coding_score)
 
-        if user:
-            # Get the coding score from the form submission
-            coding_score = int(request.form.get('codingScore'))
+        # Redirect or render as needed
+        return redirect('/coding_submissions')
+    else:
+        return jsonify({'message': 'User not found'}), 404
 
-            # Update the user's coding score in the database
-            user.coding_score = coding_score
-            db.session.commit()
+def send_async_email(msg):
+    with app.app_context():
+        # This context ensures that Flask extensions are properly initialized
+        try:
+            mail.send(msg)
+            # Email sent successfully, update the user's email status in the database
+            update_email_status(msg.recipients[0], 'Sent')
+        except Exception as e:
+            # Handle exceptions
+            print(f'Error sending email: {str(e)}')
+            # Email sending failed, update the user's email status in the database
+            update_email_status(msg.recipients[0], 'Failed')
 
-            # Redirect to the "View Quiz Results" page after the update
-            return redirect('/view_quiz_results')
+def update_email_status(email, status):
+    user = User.query.filter_by(email=email).first()
+    if user:
+        user.email_status = status
+        db.session.commit()
+    else:
+        print(f'User with email {email} not found in the database')
 
-    # Handle the case where the form submission fails
-    return jsonify({'message': 'Error updating coding score'}), 500
+@app.route('/send_email/<int:user_id>', methods=['POST'])
+def send_email(user_id):
+    # Retrieve the user from the database
+    user = db.session.query(User).get(user_id)
+
+    if user:
+        # Create the email message
+        msg = Message('Quiz Results for {}'.format(user.name),
+                      recipients=['sujata.ballolli@gmail.com'])  # Replace with the actual HR email
+
+        # Customize the email content
+        email_content = f"Hello HR,\n\n{user.name}'s quiz results are as follows:\n\n" \
+                        f"Quiz Score: {user.quiz_score}/5\n" \
+                        f"Coding Score: {user.coding_score}/10\n" \
+                        f"Status: {user.status}\n\n" \
+                        "Best regards,\nYour App"
+
+        msg.body = email_content
+
+        try:
+            # Send the email asynchronously using threading
+            t = Thread(target=send_async_email, args=(msg,))
+            t.start()
+
+            return 'Email sending task started successfully!'
+        except Exception as e:
+            # Handle exceptions
+            return f'Error starting email sending task: {str(e)}'
+    else:
+        return jsonify({'message': 'User not found'}), 404
 
 
+
+@app.route('/questions_xl')
+def questions_xl():
+    return render_template('questions_xl.html')
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return render_template('index.html', error='No file part')
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return render_template('index.html', error='No selected file')
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
+        questions = read_excel(file_path)
+        return render_template('questions_xl.html', questions=questions)
+
+    return render_template('index.html', error='Invalid file format')
+
+def read_excel(file_path):
+    df = pd.read_excel(file_path)
+    questions = []
+
+    for index, row in df.iterrows():
+        question_data = {
+            'question': row['Question'],
+            'options': [row['Option A'], row['Option B'], row['Option C'], row['Option D']],
+            'correct_option': row['Correct Option']  
+        }
+        questions.append(question_data)
+
+    return questions
+
+@app.route('/create_quiz_category')
+def create_quiz_category():
+    return render_template('create_quiz_category.html', proficiencies=proficiencies)
+@app.route('/add_question', methods=['POST'])
+def add_question():
+    data = request.get_json()
+    proficiency = data['proficiency']
+    question = data['question']
+    options = data['options']
+
+    questions_by_proficiency[proficiency].append({'question': question, 'options': options})
+    
+    return jsonify(status='success')
+
+@app.route('/get_questions', methods=['POST'])
+def get_questions():
+    proficiency = request.get_json()['proficiency']
+    questions = questions_by_proficiency.get(proficiency, [])
+    return jsonify(questions=questions)
+
+@app.route('/delete_question', methods=['POST'])
+def delete_question():
+    data = request.get_json()
+    proficiency = data['proficiency']
+    question_index = data['index']
+
+    if proficiency in questions_by_proficiency and 0 <= question_index < len(questions_by_proficiency[proficiency]):
+        del questions_by_proficiency[proficiency][question_index]
+
+    return jsonify(status='success')
+
+@app.route('/view_questions')
+def view_questions():
+    return render_template('view_questions.html', questions_by_proficiency=questions_by_proficiency)
 
 if __name__ == '__main__':
     app.run(debug=True , port=1234)

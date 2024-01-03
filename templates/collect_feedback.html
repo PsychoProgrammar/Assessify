@@ -126,7 +126,7 @@
             form.addEventListener("submit", function (event) {
                 event.preventDefault();
 
-                // Use Fetch API or other methods to submit the form data
+                // Use Fetch API to submit the form data
                 fetch("/submit_feedback", {
                         method: "POST",
                         body: new FormData(form),

@@ -21,6 +21,7 @@ def upgrade():
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.add_column(sa.Column('resume_filename', sa.String(length=255), nullable=True))
         batch_op.add_column(sa.Column('resume_data', sa.LargeBinary(), nullable=True))
+       
 
     # ### end Alembic commands ###
 
@@ -30,5 +31,6 @@ def downgrade():
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.drop_column('resume_data')
         batch_op.drop_column('resume_filename')
+        
 
     # ### end Alembic commands ###

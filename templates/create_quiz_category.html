@@ -1,122 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Quiz - Choose Category</title>
-    <style>
-        body {
-            background-color: #f2f2f2;
-            font-family: 'Helvetica', sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .container {
-            width: 80%;
-            max-width: 600px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-top: 50px;
-        }
-
-        .back-btn {
-            text-decoration: none;
-            color: #3498db;
-            font-size: 18px;
-            margin-bottom: 20px;
-            display: inline-block;
-        }
-
-        .back-btn:hover {
-            text-decoration: underline;
-        }
-
-        .card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            background-color: #f9f9f9;
-        }
-
-        .card-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333;
-            text-align: center;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        button {
-            background-color: #3498db;
-            color: #fff;
-            padding: 12px 20px;
-            font-size: 18px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            display: block;
-            margin: auto;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionnaire</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
-
 <body>
-
-    <div class="container">
-        <a href="{{ url_for('admin_dashboard') }}" class="back-btn">&lt; Back to Admin Dashboard</a>
-        <div class="card">
-            <div class="card-title">Create Quiz - Choose Category</div>
-            <form action="{{ url_for('create_quiz_category') }}" method="post">
-                <div class="form-group">
-                    <label for="quiz_category">Select Quiz Category:</label>
-                    <select class="form-control" id="quiz_category" name="quiz_category">
-                        <option value="python">Python</option>
-                        <option value="cpp">C++</option>
-                        <option value="java">Java</option>
-                        <option value="flask">Flask</option>
-                        <option value="golang">Golang</option>
-                        <!-- Add more options as needed -->
-                    </select>
-                </div>
-                <button type="submit">Next</button>
-            </form>
-        </div>
+ 
+<div class="container mt-4">
+<h1 class="mb-4">Add Questions </h1>
+ 
+    <div class="form-group">
+<label for="proficiency">Select Proficiency:</label>
+<select id="proficiency" class="form-control" onchange="getQuestions()">
+    {% for proficiency in proficiencies %}
+       <option value="{{ proficiency }}">{{ proficiency }}</option>
+    {% endfor %}
+ </select>
+</div>
+ 
+    <hr>
+   <!-- Modify the Add Question section in index.html -->
+   <div class="mb-4">
+    <h2>Add Question</h2>
+     
+        <div class="form-group">
+    <label for="question">Question:</label>
+    <input type="text" id="question" class="form-control">
     </div>
-
+     
+        <div class="form-group">
+    <label for="options">Options (comma-separated):</label>
+    <input type="text" id="options" class="form-control">
+    </div>
+     
+        <div class="form-group">
+    <label for="correctOption">Correct Option:</label>
+    <input type="text" id="correctOption" class="form-control" placeholder="Enter correct option">
+    </div>
+     
+        <button onclick="addQuestion()" class="btn btn-primary">Add Question</button>
+    </div>
+    <hr>
+ 
+    <div>
+<h2>Questions for Selected Proficiency</h2>
+<ul id="questionsList" class="list-group"></ul>
+</div>
+</div>
+ 
+<script>
+    function addQuestion() {
+        const proficiency = document.getElementById('proficiency').value;
+        const question = document.getElementById('question').value;
+        const options = document.getElementById('options').value.split(',');
+        const correctOption = document.getElementById('correctOption').value;
+ 
+        $.ajax({
+            type: 'POST',
+            url: '/add_question',
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({ proficiency, question, options, correctOption }),
+            success: function (response) {
+                alert('Question added successfully!');
+                clearInputs();
+                getQuestions();
+            }
+        });
+    }
+  
+        clearInputs();
+        getQuestions();
+    function getQuestions() {
+        const proficiency = document.getElementById('proficiency').value;
+ 
+        $.ajax({
+            type: 'POST',
+            url: '/get_questions',
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({ proficiency }),
+            success: function (response) {
+                const questionsList = document.getElementById('questionsList');
+                questionsList.innerHTML = '';
+ 
+                response.questions.forEach(function (q, index) {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item';
+                    li.textContent = `Question: ${q.question}, Options: ${q.options.join(', ')}`;
+ 
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'btn btn-danger btn-sm float-right';
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = function () {
+                        deleteQuestion(proficiency, index);
+                    };
+ 
+                    li.appendChild(deleteButton);
+                    questionsList.appendChild(li);
+                });
+            }
+        });
+    }
+ 
+    function deleteQuestion(proficiency, index) {
+        $.ajax({
+            type: 'POST',
+            url: '/delete_question',
+            contentType: 'application/json;charset=UTF-8',
+            data: JSON.stringify({ proficiency, index }),
+            success: function (response) {
+                alert('Question deleted successfully!');
+                getQuestions();
+            }
+        });
+    }
+ 
+    function clearInputs() {
+        document.getElementById('question').value = '';
+        document.getElementById('options').value = '';
+    }
+    
+</script>
+<div class="mt-4">    <a href="/view_questions" class="btn btn-info">View Added Questions</a></div>
+ 
 </body>
-
 </html>
+
+                                 
