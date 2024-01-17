@@ -15,6 +15,10 @@ from flask_bootstrap import Bootstrap
 from threading import Thread
 from flask import copy_current_request_context
 from werkzeug.utils import secure_filename
+from flask import Flask, render_template, request, redirect, url_for
+from models import db, Question, init_app
+import openpyxl
+from flask import request
 
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
@@ -22,25 +26,27 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587  # Change to your mail server port
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_DEBUG'] = True
 app.config['MAIL_USERNAME'] = 'shreyaballolli@gmail.com'
-app.config['MAIL_PASSWORD'] = 'shreya_66'
+app.config['MAIL_PASSWORD'] = 'vmktqedkpifzwuqg'
 app.config['MAIL_DEFAULT_SENDER'] = 'shreyaballolli@gmail.com'
 app.config['UPLOAD_FOLDER'] = 'path/to/your/upload/folder'
 app.config['ALLOWED_EXTENSIONS'] = {'xlsx', 'xls'}
 mail = Mail(app)
 proficiencies = ["C", "C++", "Java","Python"]
 questions_by_proficiency = {proficiency: [] for proficiency in proficiencies}
-# Assuming you have an Excel file named 'questions.xlsx' with a sheet named 'questions'
-SPREADSHEET_PATH = 'questions.xlsx'
-SHEET_NAME = 'questions'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
-db = SQLAlchemy(app)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///questions.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://:password@localhost/database_name'
+
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://username:password@rds-endpoint/dbname'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://admin:AWS_SBS_1234@mydb1.cyvgmxjafqjh.ap-south-1.rds.amazonaws.com:3306/mydb1'
+init_app(app)
+# db = SQLAlchemy(app)
 
 # db.init_app(app)
-
-# from models import Feedback
-
 
 migrate = Migrate(app, db)
 app.secret_key = 'secret_key'
@@ -346,12 +352,25 @@ def view_feedback():
 def logout():
     session.pop('email',None)
     return redirect('/login/user')
+
+@app.route('/top_score')
+def top_score():
+    users = User.query.order_by(User.quiz_score.desc()).all()
+    return render_template('top_score.html', users=users)
  
  
 @app.route('/show_data')
 def show_data():
     users = User.query.all()
     return render_template('show_data.html', users=users)
+
+@app.template_filter('utc_to_ist')
+def convert_utc_to_ist(utc_time):
+    if utc_time:
+        utc_time = utc_time.replace(tzinfo=pytz.utc)
+        ist_time = utc_time.astimezone(pytz.timezone('Asia/Kolkata'))
+        return ist_time.strftime('%Y-%m-%d %H:%M:%S IST')
+    return 'N/A'
  
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
 def delete_user(user_id):
@@ -468,94 +487,7 @@ def get_image(filename):
     return 'Image not found', 404
 
 
-# Add a global variable to store questions
-python_questions = []
 
-@app.route('/create_quiz_questions', methods=['GET', 'POST'])
-def create_quiz_questions():
-    if request.method == 'POST':
-        # Handle form submission and add questions to the global variable or database
-        question_text = request.form.get('question')
-        options = [
-            request.form.get('option1'),
-            request.form.get('option2'),
-            # Add more options as needed
-        ]
-        correct_answer = request.form.get('correct_answer')
-
-        # Create a dictionary to represent the question
-        question = {
-            'text': question_text,
-            'options': options,
-            'correct_answer': correct_answer
-        }
-
-        # Store the question in the global variable or database
-        python_questions.append(question)
-
-        # Redirect to Python questions page
-        return redirect(url_for('python_questions_page'))
-
-    return render_template('create_quiz_questions.html')
-
-
-
-@app.route('/submit_questions', methods=['POST'])
-def submit_questions():
-    if request.method == 'POST':
-        question_text = request.form.get('question')
-        options = [request.form.get('option1'), request.form.get('option2')]
-        correct_answer = request.form.get('correct_answer')
-        category = session.get('quiz_category')
-
-        new_question = QuizQuestion(category=category, question=question_text, options=options, correct_answer=correct_answer)
-        db.session.add(new_question)
-        db.session.commit()
-
-        # Create a dictionary to represent the question
-        question = {
-            'text': question_text,
-            'options': options,
-            'correct_answer': correct_answer
-        }
-
-        # Store the question in the global variable
-        python_questions.append(question)
-
-        
-
-        # Redirect to Python questions page
-        return redirect(url_for('python_questions_page'))
-
-@app.route('/fetch_questions')
-def fetch_questions():
-    # Replace with your actual file path
-    file_path = 'C:/Users/7000035078/Desktop/First Challenge/templates/questions.xlsx'
-    
-    # Call the function with the file path
-    questions = load_questions_from_spreadsheet(file_path)
-    
-    # Debug statement
-    print("Debug: Questions loaded from spreadsheet:", questions)
-    
-    if questions is not None:
-        # Render the HTML template with the questions
-        return render_template('questions_template.html', questions=questions)
-    else:
-        # Render an error template with a generic error message
-        return render_template('error_template.html', error_message="Failed to load questions.")
-
-# Function to load questions from the Excel file
-def load_questions_from_spreadsheet(file_path):
-    try:
-        # Load the spreadsheet into a Pandas DataFrame
-        df = pd.read_excel(file_path, sheet_name='questions')
-        questions = df.to_dict(orient='records')
-        return questions
-
-    except Exception as e:
-        print(f"Error loading questions from spreadsheet: {str(e)}")
-        return None
     
 @app.route('/submit_code', methods=['POST'])
 def submit_code():
@@ -618,22 +550,41 @@ def update_coding_score(user_id):
         user.update_coding_score(new_coding_score)
 
         # Redirect or render as needed
-        return redirect('/coding_submissions')
+        return redirect('/view_quiz_results')
     else:
         return jsonify({'message': 'User not found'}), 404
+    
 
-def send_async_email(msg):
-    with app.app_context():
-        # This context ensures that Flask extensions are properly initialized
-        try:
-            mail.send(msg)
-            # Email sent successfully, update the user's email status in the database
-            update_email_status(msg.recipients[0], 'Sent')
-        except Exception as e:
-            # Handle exceptions
-            print(f'Error sending email: {str(e)}')
-            # Email sending failed, update the user's email status in the database
-            update_email_status(msg.recipients[0], 'Failed')
+def send_email1(user):
+    # Create the email message
+    msg = Message('Quiz Results for {}'.format(user.name),
+                    sender='shreyaballolli@gmail.com',
+                    recipients=['shreyaballolli@gmail.com'])  
+
+    # Customize the email content
+    email_content = f"Hello HR,\n\n{user.name}'s quiz results are as follows:\n\n" \
+                    f"Quiz Score: {user.quiz_score}/5\n" \
+                    f"Coding Score: {user.coding_score}/10\n" \
+                    "Best regards,\nAssessify"
+
+    msg.body = email_content
+
+    try:
+        # Send the email
+        mail.send(msg)
+
+        # Email sent successfully, update the user's email status in the database
+        update_email_status(user.email, 'Sent')
+
+        return 'Email sent successfully!'
+    except Exception as e:
+        # Handle exceptions
+        print(f'Error sending email: {str(e)}')
+
+        # Email sending failed, update the user's email status in the database
+        update_email_status(user.email, 'Failed')
+
+        return 'Error sending email'
 
 def update_email_status(email, status):
     user = User.query.filter_by(email=email).first()
@@ -646,107 +597,75 @@ def update_email_status(email, status):
 @app.route('/send_email/<int:user_id>', methods=['POST'])
 def send_email(user_id):
     # Retrieve the user from the database
-    user = db.session.query(User).get(user_id)
+    user = User.query.get(user_id)
 
     if user:
-        # Create the email message
-        msg = Message('Quiz Results for {}'.format(user.name),
-                      recipients=['sujata.ballolli@gmail.com'])  # Replace with the actual HR email
-
-        # Customize the email content
-        email_content = f"Hello HR,\n\n{user.name}'s quiz results are as follows:\n\n" \
-                        f"Quiz Score: {user.quiz_score}/5\n" \
-                        f"Coding Score: {user.coding_score}/10\n" \
-                        f"Status: {user.status}\n\n" \
-                        "Best regards,\nYour App"
-
-        msg.body = email_content
-
-        try:
-            # Send the email asynchronously using threading
-            t = Thread(target=send_async_email, args=(msg,))
-            t.start()
-
-            return 'Email sending task started successfully!'
-        except Exception as e:
-            # Handle exceptions
-            return f'Error starting email sending task: {str(e)}'
+        result = send_email1(user)
+        return result
     else:
         return jsonify({'message': 'User not found'}), 404
-
-
-
-@app.route('/questions_xl')
-def questions_xl():
-    return render_template('questions_xl.html')
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return render_template('index.html', error='No file part')
-
-    file = request.files['file']
-
-    if file.filename == '':
-        return render_template('index.html', error='No selected file')
-
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-
-        questions = read_excel(file_path)
-        return render_template('questions_xl.html', questions=questions)
-
-    return render_template('index.html', error='Invalid file format')
-
-def read_excel(file_path):
-    df = pd.read_excel(file_path)
-    questions = []
-
-    for index, row in df.iterrows():
-        question_data = {
-            'question': row['Question'],
-            'options': [row['Option A'], row['Option B'], row['Option C'], row['Option D']],
-            'correct_option': row['Correct Option']  
-        }
-        questions.append(question_data)
-
-    return questions
-
-@app.route('/create_quiz_category')
-def create_quiz_category():
-    return render_template('create_quiz_category.html', proficiencies=proficiencies)
+    
+@app.route('/upload_questions')
+def upload_questions():
+    return render_template('upload_questions.html')
+    
 @app.route('/add_question', methods=['POST'])
 def add_question():
-    data = request.get_json()
-    proficiency = data['proficiency']
-    question = data['question']
-    options = data['options']
+    question_text = request.form['question_text']
+    option_a = request.form['option_a']
+    option_b = request.form['option_b']
+    option_c = request.form['option_c']
+    option_d = request.form['option_d']
+    correct_option = request.form['correct_option']
 
-    questions_by_proficiency[proficiency].append({'question': question, 'options': options})
-    
-    return jsonify(status='success')
+    new_question = Question(
+        question_text=question_text,
+        option_a=option_a,
+        option_b=option_b,
+        option_c=option_c,
+        option_d=option_d,
+        correct_option=correct_option
+    )
 
-@app.route('/get_questions', methods=['POST'])
-def get_questions():
-    proficiency = request.get_json()['proficiency']
-    questions = questions_by_proficiency.get(proficiency, [])
-    return jsonify(questions=questions)
+    db.session.add(new_question)
+    db.session.commit()
 
-@app.route('/delete_question', methods=['POST'])
-def delete_question():
-    data = request.get_json()
-    proficiency = data['proficiency']
-    question_index = data['index']
-
-    if proficiency in questions_by_proficiency and 0 <= question_index < len(questions_by_proficiency[proficiency]):
-        del questions_by_proficiency[proficiency][question_index]
-
-    return jsonify(status='success')
+    return redirect(url_for('view_questions'))
 
 @app.route('/view_questions')
 def view_questions():
-    return render_template('view_questions.html', questions_by_proficiency=questions_by_proficiency)
+    questions = Question.query.all()
+    return render_template('view_questions.html', questions=questions)
+
+@app.route('/upload_excel', methods=['POST'])
+def upload_excel():
+    file = request.files['file']
+    workbook = openpyxl.load_workbook(file)
+    sheet = workbook.active
+
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        question = Question(
+            question_text=row[0],
+            option_a=row[1],
+            option_b=row[2],
+            option_c=row[3],
+            option_d=row[4],
+            correct_option=row[5]
+        )
+
+        db.session.add(question)
+
+    db.session.commit()
+
+    return redirect(url_for('view_questions'))
+
+@app.route('/delete_question/<int:question_id>', methods=['POST'])
+def delete_question(question_id):
+    question = Question.query.get_or_404(question_id)
+    db.session.delete(question)
+    db.session.commit()
+    return redirect(url_for('view_questions'))
+
 
 if __name__ == '__main__':
     app.run(debug=True , port=1234)

@@ -2,53 +2,107 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Questions</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff; /* Light blue background color */
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+ 
+        h1 {
+            color: #007bff; /* Heading color */
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+ 
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+ 
+        table, th, td {
+            border: 1px solid #87cefa; /* Light sky blue border color */
+        }
+ 
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+ 
+        th {
+            background-color: #87cefa; /* Light sky blue header background color */
+            color: #ffffff; /* Header text color */
+        }
+ 
+        .btn-primary {
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: #007bff; /* Primary button color */
+            border: 1px solid #007bff; /* Primary button border color */
+        }
+ 
+        .btn-primary:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+            border: 1px solid #0056b3; /* Darker border on hover */
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <!-- Back Button -->
+        <a href="#" onclick="history.back();" class="btn btn-primary btn-sm" style="position: absolute; top: 10px; left: 10px;">Back</a>
+    <div class="container">
+        <h1 class="mt-4 mb-4">View Questions</h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Question</th>
+                    <th>Option A</th>
+                    <th>Option B</th>
+                    <th>Option C</th>
+                    <th>Option D</th>
+                    <th>Correct Option</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for question in questions %}
+                <tr>
+                    <td>{{ question.id }}</td>
+                    <td>{{ question.question_text }}</td>
+                    <td>{{ question.option_a }}</td>
+                    <td>{{ question.option_b }}</td>
+                    <td>{{ question.option_c }}</td>
+                    <td>{{ question.option_d }}</td>
+                    <td>{{ question.correct_option }}</td>
+                    <td>
+                        <form action="/delete_question/{{ question.id }}" method="post" onsubmit="return confirm('Are you sure you want to delete this question?')">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+       
+    </div>
  
-<div class="container mt-4">
-    <h1 class="mb-4">View Added Questions</h1>
- 
-    {% for proficiency, questions in questions_by_proficiency.items() %}
-<div class="mb-4">
-<h2>{{ proficiency }}</h2>
-<ul class="list-group">
-            {% for question in questions %}
-<li class="list-group-item">
-<strong>Question:</strong> {{ question.question }}<br>
-<strong>Options:</strong> {{ question.options|join(', ') }}<br>
-<strong>Correct Option:</strong> {{ question.correctOption }}
-<button class="btn btn-danger btn-sm float-right" onclick="deleteQuestion('{{ proficiency }}', '{{ question.question }}')">Delete</button>
-</li>
-            {% endfor %}
-</ul>
-</div>
-{% endfor %}
-
-has context menu
-</div>
- 
-<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
- 
-<script>
-    function deleteQuestion(proficiency, question) {
-        if (confirm("Are you sure you want to delete this question?")) {
-            $.ajax({
-                type: 'POST',
-                url: '/delete_question',
-                contentType: 'application/json;charset=UTF-8',
-                data: JSON.stringify({ proficiency, question }),
-                success: function (response) {
-                    alert('Question deleted successfully!');
-                    location.reload();
-                }
-            });
-        }
-    }
-</script>
- 
+    <!-- Include Bootstrap JS (optional, if needed) -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>

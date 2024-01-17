@@ -84,14 +84,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-title">Create Quiz</div>
-                    <p>Create and manage quizzes for users.</p>
-                    <a href="{{ url_for('create_quiz_category') }}" class="btn btn-primary">Create Quiz</a>
-
-                </div>
-            </div>
+            
 
            
             
@@ -102,6 +95,15 @@
                     <a href="show_data" class="btn btn-primary">Registered Candidates</a>
                 </div>
             </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-title">Top Score</div>
+                    <p>Check the highest score.</p>
+                    <a href="{{ url_for('top_score') }}" class="btn btn-primary">Top Score</a>
+                </div>
+            </div>
+            
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-title">View Feedback</div>
@@ -111,11 +113,12 @@
             </div>
             <div class="col-md-4">
                 <div class="card">
-                    <div class="card-title">Upload Spreadsheet</div>
-                    <p>Upload Questions using Spreadsheet</p>
-                    <a href="{{ url_for('questions_xl') }}" class="btn btn-primary">Upload</a>
+                    <div class="card-title">Upload Questions</div>
+                    <p>Check feedback from quiz-takers.</p>
+                    <a href="{{ url_for('upload_questions') }}" class="btn btn-primary">upload questions</a>
                 </div>
             </div>
+            
 
             
         </div>

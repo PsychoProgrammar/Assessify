@@ -78,7 +78,7 @@
             white-space: nowrap;
         }
 
-        .download-btn, .coding-btn {
+        .download-btn, .coding-btn, .email-btn {
             display: block;
             width: 100%;
             margin-top: 5px;
@@ -91,7 +91,7 @@
             transition: background-color 0.3s;
         }
 
-        .download-btn:hover, .coding-btn:hover {
+        .download-btn:hover, .coding-btn:hover, .email-btn:hover {
             background-color: #0056b3;
         }
     </style>
@@ -126,10 +126,10 @@
                         <button type="submit" class="btn btn-info download-btn">Download</button>
                     </form>
                 </td>
-                <td>{{ user.status }}</td>
+                <!-- <td>{{ user.status }}</td> -->
                 <td>
                     <form action="{{ url_for('send_email', user_id=user.id) }}" method="post">
-                        <button type="submit" class="btn btn-info">Send Email</button>
+                        <button type="submit" class="btn btn-info email-btn">Send Email</button>
                     </form>
                 </td>
                 
