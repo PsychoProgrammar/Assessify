@@ -39,10 +39,7 @@ questions_by_proficiency = {proficiency: [] for proficiency in proficiencies}
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///questions.db'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://:password@localhost/database_name'
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://username:password@rds-endpoint/dbname'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://admin:AWS_SBS_1234@mydb1.cyvgmxjafqjh.ap-south-1.rds.amazonaws.com:3306/mydb1'
 init_app(app)
 # db = SQLAlchemy(app)
 
