@@ -19,6 +19,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from models import db, Question, init_app
 import openpyxl
 from flask import request
+import boto3
 
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
@@ -30,7 +31,7 @@ app.config['MAIL_DEBUG'] = True
 app.config['MAIL_USERNAME'] = 'shreyaballolli@gmail.com'
 app.config['MAIL_PASSWORD'] = 'vmktqedkpifzwuqg'
 app.config['MAIL_DEFAULT_SENDER'] = 'shreyaballolli@gmail.com'
-app.config['UPLOAD_FOLDER'] = 'path/to/your/upload/folder'
+app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'xlsx', 'xls'}
 mail = Mail(app)
 proficiencies = ["C", "C++", "Java","Python"]
@@ -39,8 +40,17 @@ questions_by_proficiency = {proficiency: [] for proficiency in proficiencies}
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///questions.db'
+app.config.from_pyfile('config.py')
 
 init_app(app)
+
+s3 = boto3.client(
+    's3',
+    aws_access_key_id=app.config['AWS_ACCESS_KEY_ID'],
+    aws_secret_access_key=app.config['AWS_SECRET_ACCESS_KEY'],
+)
+bucket = 'first-challenge-assessify-team6'
+
 # db = SQLAlchemy(app)
 
 # db.init_app(app)
@@ -233,14 +243,33 @@ def register():
                 # Save resume details in the database
                 new_user.resume_filename = resume_file.filename
                 new_user.resume_data = resume_file.read()
+                s3_file_name=str(phone)
+                file_key= "resume_folder/" + s3_file_name+".pdf"
+                s3.upload_fileobj(resume_file, bucket, file_key, ExtraArgs={'ContentType': 'application/pdf'})
+
 
          # Handle image upload
         if 'image' in request.files:
-         image = request.files['image']
-        if image.filename != '':
-            filename = secure_filename(image.filename)
-            new_user.image_filename = filename
-            new_user.image_data = image.read()
+            image = request.files['image']
+            if image.filename != '':
+                filename = secure_filename(image.filename)
+                new_user.image_filename = filename
+                new_user.image_data = image.read()
+                s3_file_name=str(phone)
+                file_extension = os.path.splitext(image.filename)[1]
+                print(file_extension)
+                if file_extension==".jpg":
+                    file_key= "image_folder/" + s3_file_name+".jpg"
+
+                elif file_extension==".jpeg":
+                    file_key= "image_folder/" + s3_file_name+".jpeg"
+
+                elif file_extension==".png":
+                    file_key= "image_folder/" + s3_file_name+".png"
+
+                s3.upload_fileobj(image, bucket, file_key)
+
+         
        
           
         db.session.add(new_user)
