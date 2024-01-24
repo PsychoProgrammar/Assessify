@@ -1,15 +1,15 @@
-# FROM python:3.11.4
-# RUN apt-get update -y && \
-#     apt-get install -y python-pip python-dev
-# WORKDIR /app
-# COPY ./requirements.txt /app/requirements.txt 
-# RUN pip install -r requirements.txt
-# CMD ["python", :./app.py]
-# CMD ["flask", "run", "app", "1.2.3.4"]
-
-FROM python:3.11.4
-EXPOSE 5000  
-WORKDIR /app
-COPY . .
-RUN pip install -r requirements.txt
-CMD python ./app.py
+FROM python:3.9.10
+WORKDIR /srv
+RUN pip install --upgrade pip
+RUN pip install flask
+RUN pip install Flask-SQLAlchemy 
+RUN pip install Flask-Mail
+RUN pip install Flask-Migrate
+RUN pip install pytz
+RUN pip install pandas
+RUN pip install Flask-Bootstrap
+RUN pip install openpyxl
+RUN pip install boto3
+COPY . /srv
+ENV FLASK_APP=app
+CMD ["python","app.py"]
