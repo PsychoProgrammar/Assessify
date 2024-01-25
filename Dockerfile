@@ -10,6 +10,7 @@ RUN pip install pandas
 RUN pip install Flask-Bootstrap
 RUN pip install openpyxl
 RUN pip install boto3
+RUN pip install pyarrow
 COPY . /srv
 ENV FLASK_APP=app
 CMD ["python","app.py"]
